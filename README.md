@@ -55,7 +55,16 @@ VITE_SPOTIFY_CLIENT_ID=twoj_spotify_client_id
 ```
 *(Client ID możesz także w każdej chwili wpisać lub zmienić bezpośrednio w widżecie w oknie ustawień ⚙️).*
 
-### Krok 2: Uruchomienie widżetu
+## 🚀 Szybkie Uruchomienie (1-Click)
+
+W głównym folderze projektu znajduje się gotowy, skompilowany plik:
+👉 **`Spotify-Widget.exe`**
+
+Wystarczy kliknąć w niego **dwukrotnie** – aplikacja uruchamia się natychmiast bez otwierania terminala, bez instalacji czegokolwiek i bez serwerów deweloperskich.
+
+---
+
+### Alternatywnie (dla programistów):
 Skorzystaj z przygotowanego skryptu startowego:
 ```powershell
 # W konsoli PowerShell:
