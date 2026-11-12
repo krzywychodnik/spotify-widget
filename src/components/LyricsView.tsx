@@ -1,6 +1,7 @@
 import React from "react";
 import { LyricLine, AppCustomization } from "../types";
-import { Mic, Music, Loader2 } from "lucide-react";
+import { Music, Loader2 } from "lucide-react";
+import { useTranslation } from "../i18n";
 
 interface LyricsViewProps {
   lyrics: LyricLine[];
@@ -19,6 +20,7 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
   scrollContainerRef,
   customization,
 }) => {
+  const { t } = useTranslation();
   const fontSize = customization?.lyricsFontSize || "medium";
   const lyricStyle = customization?.activeLyricStyle || "spotify-glow";
   const glow = customization?.lyricsGlow !== false;
@@ -40,7 +42,7 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
     return (
       <div className="w-full h-full flex flex-col items-center justify-center text-white/50 gap-2 select-none py-8">
         <Loader2 className="w-5 h-5 animate-spin text-[var(--accent-color)]" />
-        <span className="text-xs">Ładowanie tekstu z LRCLIB...</span>
+        <span className="text-xs">{t.lyrics.loadingLyrics}</span>
       </div>
     );
   }
@@ -49,8 +51,8 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
     return (
       <div className="w-full h-full flex flex-col items-center justify-center text-white/40 gap-2 select-none py-8 text-center px-4">
         <Music className="w-7 h-7 text-white/20 mb-1" />
-        <span className="text-xs font-medium">Brak zsynchronizowanego tekstu utworu</span>
-        <span className="text-[10px] text-white/30">Ciesz się muzyką ♪</span>
+        <span className="text-xs font-medium">{t.lyrics.noLyrics}</span>
+        <span className="text-[10px] text-white/30">{t.lyrics.enjoyMusic}</span>
       </div>
     );
   }
@@ -58,44 +60,53 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
   return (
     <div
       ref={scrollContainerRef}
-      className="lyrics-scroll-container w-full h-full overflow-y-auto px-4 py-6 space-y-4 select-none relative scroll-smooth z-10"
+      className={`w-full h-full overflow-y-auto px-4 py-8 space-y-4 select-none lyrics-scroll-container ${
+        textAlign === "center" ? "text-center" : "text-left"
+      }`}
     >
-      <div className="h-10" /> {/* Top spacing so top lyrics can center */}
       {lyrics.map((line, index) => {
         const isActive = index === activeLineIndex;
-        const isPast = index < activeLineIndex;
+
+        // Custom styling for active lyric line based on user customization
+        let activeClasses = "text-white scale-100 opacity-100";
+        let activeInlineStyle: React.CSSProperties = {};
+
+        if (isActive) {
+          if (lyricStyle === "accent-gradient") {
+            activeClasses = "font-extrabold text-[var(--accent-color)] scale-[1.03]";
+            activeInlineStyle = {
+              filter: glow ? "drop-shadow(0 0 10px var(--accent-glow))" : undefined,
+            };
+          } else if (lyricStyle === "minimal-line") {
+            activeClasses = "font-bold text-white border-l-2 border-[var(--accent-color)] pl-2";
+          } else {
+            // Default "spotify-glow" style
+            activeClasses =
+              "font-bold text-white scale-[1.02] border-l-2 border-[var(--accent-color)] pl-2.5";
+            activeInlineStyle = {
+              textShadow: glow ? "0 0 14px var(--accent-glow)" : undefined,
+            };
+          }
+        }
 
         return (
-          <div
+          <p
             key={`${line.timeMs}-${index}`}
-            data-lyric-index={index}
             onClick={() => onSeek(line.timeMs)}
-            className={`lyric-line cursor-pointer py-1.5 px-3 rounded-xl transition-all duration-300 ${
-              textAlign === "center" ? "text-center" : "text-left"
-            } ${getFontSizeClasses(isActive)} ${
+            style={activeInlineStyle}
+            className={`cursor-pointer transition-all duration-300 leading-relaxed ${getFontSizeClasses(
               isActive
-                ? `active style-${lyricStyle} bg-white/10 ${
-                    textAlign === "left" ? "pl-3.5 border-l-2 border-[var(--accent-color)]" : ""
-                  } ${glow ? "shadow-sm" : ""}`
-                : isPast
-                ? "inactive text-white/35 hover:text-white/60 hover:bg-white/[0.03]"
-                : "inactive text-white/55 hover:text-white/80 hover:bg-white/[0.03]"
+            )} ${
+              isActive
+                ? activeClasses
+                : "text-white/40 hover:text-white/80 hover:scale-[1.01]"
             }`}
           >
-            <div
-              className={`flex items-center gap-2 ${
-                textAlign === "center" ? "justify-center" : "justify-between"
-              }`}
-            >
-              <span className="leading-snug tracking-wide">{line.text}</span>
-              {isActive && (
-                <Mic className="w-3.5 h-3.5 text-[var(--accent-color)] shrink-0 animate-pulse" />
-              )}
-            </div>
-          </div>
+            {line.text || "♪"}
+          </p>
         );
       })}
-      <div className="h-16" /> {/* Bottom spacing so bottom lyrics can center */}
+      <div className="h-24" />
     </div>
   );
 };

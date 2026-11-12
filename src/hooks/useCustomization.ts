@@ -11,41 +11,64 @@ export const DEFAULT_CUSTOMIZATION: AppCustomization = {
   animationType: "spring",
   animationSpeedMs: 420,
   
-  // Appearance & Colors
-  accentColor: "#1DB954",
+  // Appearance & Colors (Author's Favorite Mocha Theme by default)
+  accentColor: "#6F4A16",
   bgTheme: "glass",
   activeGif: "lofi-hiphop-1",
-  bgBlur: 36,
+  bgBlur: 24,
   bgOpacity: 88,
-  collapsedShape: "rounded-square",
+  collapsedShape: "circle",
   
   // Collapsed Widget
   collapsedControls: "hover",
   collapsedProgressStyle: "radial",
   
   // Player & Effects
-  albumArtSpin: false,
+  albumArtSpin: true,
   albumArtGlow: true,
   showVisualizer: true,
   
   // Lyrics
   lyricsFontSize: "medium",
   lyricsGlow: true,
-  activeLyricStyle: "spotify-glow",
+  activeLyricStyle: "accent-gradient",
 };
 
 const STORAGE_KEY = "spotify_widget_customization";
+const VERSION_KEY = "spotify_widget_customization_v";
+const CURRENT_VERSION = 3;
 
 export function useCustomization() {
   const [customization, setCustomizationState] = useState<AppCustomization>(() => {
     try {
+      const savedVersion = Number(localStorage.getItem(VERSION_KEY) || 0);
       const saved = localStorage.getItem(STORAGE_KEY);
+
       if (saved) {
-        return { ...DEFAULT_CUSTOMIZATION, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+
+        // Migrate legacy green default to author's mocha brown (#6F4A16)
+        if (savedVersion < CURRENT_VERSION) {
+          if (!parsed.accentColor || parsed.accentColor.toLowerCase() === "#1db954") {
+            parsed.accentColor = "#6F4A16";
+          }
+          if (!parsed.collapsedShape || parsed.collapsedShape === "rounded-square") {
+            parsed.collapsedShape = "circle";
+          }
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
+        }
+
+        return { ...DEFAULT_CUSTOMIZATION, ...parsed };
       }
     } catch (e) {
       console.warn("Failed to read customization from localStorage", e);
     }
+
+    try {
+      localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
+    } catch {}
+
     return DEFAULT_CUSTOMIZATION;
   });
 
@@ -65,6 +88,7 @@ export function useCustomization() {
     setCustomizationState(DEFAULT_CUSTOMIZATION);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CUSTOMIZATION));
+      localStorage.setItem(VERSION_KEY, String(CURRENT_VERSION));
     } catch (e) {
       console.warn("Failed to reset customization", e);
     }

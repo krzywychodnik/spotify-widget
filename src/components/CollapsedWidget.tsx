@@ -1,6 +1,7 @@
 import React from "react";
 import { Play, Pause, SkipForward, SkipBack, Music2 } from "lucide-react";
 import { SpotifyTrack, AppCustomization } from "../types";
+import { useTranslation } from "../i18n";
 
 interface CollapsedWidgetProps {
   currentTrack: SpotifyTrack | null;
@@ -23,6 +24,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
   progressPercent,
   customization,
 }) => {
+  const { t } = useTranslation();
   const albumArt = currentTrack?.album?.images?.[0]?.url;
   const isVinyl = !!customization?.albumArtSpin;
   const controlsMode = customization?.collapsedControls || "hover";
@@ -156,7 +158,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
                 onPrev();
               }}
               className="p-1 rounded-full text-white/90 hover:text-white hover:bg-white/20 hover:scale-110 transition active:scale-90 shrink-0"
-              title="Poprzedni"
+              title={t.collapsed.previous}
             >
               <SkipBack className="w-4 h-4 fill-current drop-shadow-sm" />
             </button>
@@ -169,7 +171,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
               }}
               style={{ backgroundColor: "var(--accent-color)" }}
               className="p-1.5 rounded-full text-black hover:scale-110 active:scale-95 transition shadow-lg shrink-0"
-              title={isPlaying ? "Wstrzymaj" : "Odtwórz"}
+              title={isPlaying ? t.collapsed.pause : t.collapsed.play}
             >
               {isPlaying ? (
                 <Pause className="w-4 h-4 fill-current" />
@@ -185,7 +187,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
                 onNext();
               }}
               className="p-1 rounded-full text-white/90 hover:text-white hover:bg-white/20 hover:scale-110 transition active:scale-90 shrink-0"
-              title="Następny"
+              title={t.collapsed.next}
             >
               <SkipForward className="w-4 h-4 fill-current drop-shadow-sm" />
             </button>

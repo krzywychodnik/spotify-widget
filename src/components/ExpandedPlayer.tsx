@@ -23,6 +23,7 @@ import { SpotifyTrack, LyricLine, AppCustomization, PRESET_GIFS } from "../types
 import { LyricsView } from "./LyricsView";
 import { ParticlesBackground } from "./ParticlesBackground";
 import { PlaylistsView } from "./PlaylistsView";
+import { useTranslation } from "../i18n";
 
 interface ExpandedPlayerProps {
   currentTrack: SpotifyTrack | null;
@@ -91,6 +92,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   customization,
   onPlayPlaylist,
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"player" | "lyrics" | "playlists">("player");
   const [isMuted, setIsMuted] = useState(false);
   const [prevVolume, setPrevVolume] = useState(volume);
@@ -139,7 +141,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
     PRESET_GIFS.find((g) => g.id === customization?.activeGif) || PRESET_GIFS[0];
 
   return (
-    <div className="relative w-full h-full glass-panel rounded-3xl flex flex-col overflow-hidden text-white select-none transition-all duration-300 shadow-2xl">
+    <div className="relative w-full h-full glass-panel rounded-3xl flex flex-col overflow-hidden text-white select-none transition-all duration-300 shadow-2xl min-w-[340px] min-h-[520px]">
       {/* Dynamic Backgrounds (GIF, Aurora, Particles, Mesh) */}
       {customization?.bgTheme === "gif" && activeGifData && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
@@ -202,7 +204,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             data-tauri-drag-region
             className="text-[11px] font-semibold tracking-wider uppercase text-white/60"
           >
-            Spotify Overlay
+            {t.common.appName}
           </span>
 
           {/* Animated EQ Visualizer */}
@@ -226,7 +228,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                   ? "bg-white/15 text-white shadow-sm"
                   : "text-white/40 hover:text-white/80"
               }`}
-              title="Odtwarzacz"
+              title={t.player.playerTab}
             >
               <Disc3 className="w-3 h-3" />
             </button>
@@ -237,7 +239,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                   ? "bg-white/15 text-white shadow-sm"
                   : "text-white/40 hover:text-white/80"
               }`}
-              title="Tekst utworu"
+              title={t.player.lyricsTab}
             >
               <Mic className="w-3 h-3" style={{ color: "var(--accent-color)" }} />
               {lyrics.length > 0 && (
@@ -254,7 +256,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                   ? "bg-white/15 text-white shadow-sm"
                   : "text-white/40 hover:text-white/80"
               }`}
-              title="Twoje playlisty"
+              title={t.player.playlistsTab}
             >
               <ListMusic
                 className="w-3 h-3"
@@ -263,11 +265,11 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             </button>
           </div>
 
-          {/* Minimize / Collapse Button (Click to collapse) */}
+          {/* Minimize / Collapse Button */}
           <button
             onClick={onCollapse}
             className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition"
-            title="Zwiń widget"
+            title={t.player.collapseWidget}
           >
             <ChevronDown className="w-3.5 h-3.5" />
           </button>
@@ -281,7 +283,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 : "text-white/40 hover:text-white hover:bg-white/10"
             }`}
             style={isPinned ? { color: "var(--accent-color)" } : {}}
-            title={isPinned ? "Przypięte (nie zwinie się)" : "Przypnij okno"}
+            title={isPinned ? t.player.unpinWindow : t.player.pinWindow}
           >
             <Pin className={`w-3.5 h-3.5 ${isPinned ? "rotate-45" : ""}`} />
           </button>
@@ -290,7 +292,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           <button
             onClick={onOpenSettings}
             className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition"
-            title="Ustawienia"
+            title={t.player.settings}
           >
             <Settings className="w-3.5 h-3.5" />
           </button>
@@ -299,7 +301,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           <button
             onClick={onCloseApp}
             className="p-1.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/15 transition active:scale-95"
-            title="Zamknij"
+            title={t.common.close}
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -317,9 +319,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <Music2 className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-white">Połącz ze Spotify</h3>
+            <h3 className="text-sm font-bold text-white">{t.settings.spotify.connected.replace("Connected to", "Connect to")}</h3>
             <p className="text-xs text-white/50 max-w-[240px]">
-              Skonfiguruj Client ID i zaloguj się, aby kontrolować odtwarzanie i widzieć napisy.
+              {t.player.playSomething}
             </p>
           </div>
           <button
@@ -327,7 +329,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             style={{ backgroundColor: "var(--accent-color)" }}
             className="px-4 py-2 text-black text-xs font-bold rounded-xl shadow-lg transition active:scale-95"
           >
-            Otwórz konfigurację
+            {t.settings.spotify.loginWithSpotify}
           </button>
         </div>
       ) : !currentTrack ? (
@@ -337,9 +339,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <Music2 className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-semibold text-white">Brak odtwarzania</h3>
+            <h3 className="text-sm font-semibold text-white">{t.player.noPlayback}</h3>
             <p className="text-xs text-white/40 max-w-[220px]">
-              Uruchom odtwarzanie w aplikacji Spotify na komputerze lub telefonie.
+              {t.player.playSomething}
             </p>
           </div>
         </div>
@@ -368,6 +370,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <button
               onClick={onTogglePlay}
               className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition shrink-0"
+              title={isPlaying ? t.player.pause : t.player.play}
             >
               {isPlaying ? (
                 <Pause className="w-3.5 h-3.5 fill-current" />
@@ -405,7 +408,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <div
               onClick={() => setActiveTab("playlists")}
               className="relative group/art w-auto h-auto max-w-[210px] max-h-[36vh] min-w-[80px] min-h-[80px] aspect-square flex items-center justify-center my-auto shrink-1 cursor-pointer transition-transform duration-200 active:scale-95"
-              title="Kliknij, aby otworzyć playlisty"
+              title={t.player.openPlaylists}
             >
               {/* Optional ambient colorful glow behind album art */}
               {customization?.albumArtGlow && (
@@ -424,7 +427,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               >
                 <ListMusic className="w-6 h-6 text-white drop-shadow" />
                 <span className="text-[10px] font-semibold text-white/95 bg-black/60 px-2.5 py-0.5 rounded-full backdrop-blur-sm border border-white/20">
-                  Twoje playlisty
+                  {t.player.yourPlaylists}
                 </span>
               </div>
 
@@ -474,7 +477,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               </div>
             </div>
 
-            {/* Song title with NO tooltip attribute */}
+            {/* Song title */}
             <div className="w-full max-w-[92%] px-2 space-y-0.5 sm:space-y-1 shrink-0">
               <h2 className="text-xs sm:text-sm font-bold text-white truncate hover:whitespace-normal transition-all">
                 {currentTrack.name}
@@ -523,7 +526,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               onClick={onToggleShuffle}
               className="p-1.5 sm:p-2 rounded-full transition relative"
               style={shuffleState ? { color: "var(--accent-color)" } : { color: "rgba(255,255,255,0.4)" }}
-              title="Losowo"
+              title={t.player.shuffle}
             >
               <Shuffle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {shuffleState && (
@@ -537,7 +540,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <button
               onClick={onPrev}
               className="p-1.5 sm:p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition active:scale-90"
-              title="Poprzedni utwór"
+              title={t.player.previous}
             >
               <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
             </button>
@@ -549,7 +552,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 boxShadow: "0 10px 25px -5px var(--accent-glow)",
               }}
               className="p-2.5 sm:p-3.5 rounded-full text-black hover:scale-105 active:scale-95 transition shadow-lg"
-              title={isPlaying ? "Wstrzymaj" : "Odtwórz"}
+              title={isPlaying ? t.player.pause : t.player.play}
             >
               {isPlaying ? (
                 <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
@@ -561,7 +564,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <button
               onClick={onNext}
               className="p-1.5 sm:p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition active:scale-90"
-              title="Następny utwór"
+              title={t.player.next}
             >
               <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
             </button>
@@ -574,7 +577,13 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                   ? { color: "var(--accent-color)" }
                   : { color: "rgba(255,255,255,0.4)" }
               }
-              title={`Powtarzanie: ${repeatState}`}
+              title={
+                repeatState === "track"
+                  ? t.player.repeatTrack
+                  : repeatState === "context"
+                  ? t.player.repeatContext
+                  : t.player.repeatOff
+              }
             >
               {repeatState === "track" ? (
                 <Repeat1 className="w-4 h-4" />
@@ -595,7 +604,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <button
               onClick={handleVolumeToggle}
               className="p-1 rounded-md text-white/50 hover:text-white transition"
-              title={isMuted ? "Włącz dźwięk" : "Wycisz"}
+              title={isMuted ? t.player.unmute : t.player.mute}
             >
               {isMuted || volume === 0 ? (
                 <VolumeX className="w-3.5 h-3.5" />
@@ -616,7 +625,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               }}
               style={{ accentColor: "var(--accent-color)" }}
               className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
-              title={`Głośność: ${volume}%`}
+              title={`${t.player.volume}: ${volume}%`}
             />
             <span className="text-[10px] text-white/40 w-6 text-right font-mono">
               {isMuted ? 0 : volume}%

@@ -3,6 +3,7 @@ import { AppCustomization, CollapseDirection } from "../types";
 import { DEFAULT_CUSTOMIZATION } from "./useCustomization";
 
 export const COLLAPSED_SIZE = { width: 104, height: 104 };
+export const MIN_EXPANDED_SIZE = { width: 340, height: 520 };
 export const DEFAULT_EXPANDED_SIZE = { width: 380, height: 560 };
 export const EXPANDED_SIZE = DEFAULT_EXPANDED_SIZE;
 
@@ -43,13 +44,18 @@ export function useWindowControl(
     return localStorage.getItem("widget_pinned") === "true";
   });
 
-  // Track dynamic user-resized dimensions
+  // Track dynamic user-resized dimensions (bounded by MIN_EXPANDED_SIZE)
   const [expandedDimensions, setExpandedDimensions] = useState<{ width: number; height: number }>(() => {
     try {
       const saved = localStorage.getItem("widget_expanded_size");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.width >= 200 && parsed.height >= 200) return parsed;
+        if (parsed.width && parsed.height) {
+          return {
+            width: Math.max(MIN_EXPANDED_SIZE.width, Number(parsed.width) || DEFAULT_EXPANDED_SIZE.width),
+            height: Math.max(MIN_EXPANDED_SIZE.height, Number(parsed.height) || DEFAULT_EXPANDED_SIZE.height),
+          };
+        }
       }
     } catch {}
     return DEFAULT_EXPANDED_SIZE;
@@ -60,19 +66,17 @@ export function useWindowControl(
     expandedDimensionsRef.current = expandedDimensions;
   }, [expandedDimensions]);
 
-  // Listen to window resize events so user resizing is tracked and remembered
+  // Listen to window resize events so user resizing is tracked and remembered (never smaller than MIN_EXPANDED_SIZE)
   useEffect(() => {
     const handleWindowResize = () => {
       if (isExpandedRef.current && !isCollapsing) {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-        if (w >= 200 && h >= 200) {
-          const newSize = { width: w, height: h };
-          setExpandedDimensions(newSize);
-          try {
-            localStorage.setItem("widget_expanded_size", JSON.stringify(newSize));
-          } catch {}
-        }
+        const w = Math.max(MIN_EXPANDED_SIZE.width, window.innerWidth);
+        const h = Math.max(MIN_EXPANDED_SIZE.height, window.innerHeight);
+        const newSize = { width: w, height: h };
+        setExpandedDimensions(newSize);
+        try {
+          localStorage.setItem("widget_expanded_size", JSON.stringify(newSize));
+        } catch {}
       }
     };
 

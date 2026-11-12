@@ -11,6 +11,9 @@ import {
   Sliders,
   RotateCcw,
   SlidersHorizontal,
+  Wand2,
+  Star,
+  Languages,
 } from "lucide-react";
 import { REDIRECT_URI } from "../services/spotifyAuth";
 import {
@@ -23,6 +26,7 @@ import {
   CollapsedProgressStyle,
   PRESET_GIFS,
 } from "../types";
+import { useTranslation } from "../i18n";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -39,13 +43,126 @@ interface SettingsModalProps {
   onResetCustomization: () => void;
 }
 
+interface ThemePresetConfig {
+  id: string;
+  accentColor: string;
+  isAuthorFav?: boolean;
+  settings: Partial<AppCustomization>;
+}
+
+const THEME_PRESET_CONFIGS: ThemePresetConfig[] = [
+  {
+    id: "author-mocha",
+    accentColor: "#6F4A16",
+    isAuthorFav: true,
+    settings: {
+      accentColor: "#6F4A16",
+      bgTheme: "glass",
+      bgOpacity: 88,
+      bgBlur: 24,
+      collapsedShape: "circle",
+      animationType: "spring",
+      albumArtSpin: true,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "accent-gradient",
+    },
+  },
+  {
+    id: "spotify-classic",
+    accentColor: "#1DB954",
+    settings: {
+      accentColor: "#1DB954",
+      bgTheme: "oled",
+      bgOpacity: 96,
+      bgBlur: 10,
+      collapsedShape: "rounded-square",
+      animationType: "fade-zoom",
+      albumArtSpin: false,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "spotify-glow",
+    },
+  },
+  {
+    id: "cyber-neon",
+    accentColor: "#A855F7",
+    settings: {
+      accentColor: "#A855F7",
+      bgTheme: "aurora",
+      bgOpacity: 80,
+      bgBlur: 20,
+      collapsedShape: "rounded-square",
+      animationType: "elastic",
+      albumArtSpin: true,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "accent-gradient",
+    },
+  },
+  {
+    id: "aqua-frost",
+    accentColor: "#06B6D4",
+    settings: {
+      accentColor: "#06B6D4",
+      bgTheme: "frosted",
+      bgOpacity: 75,
+      bgBlur: 28,
+      collapsedShape: "capsule",
+      animationType: "slide",
+      albumArtSpin: false,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "spotify-glow",
+    },
+  },
+  {
+    id: "sunset-amber",
+    accentColor: "#F59E0B",
+    settings: {
+      accentColor: "#F59E0B",
+      bgTheme: "particles",
+      bgOpacity: 85,
+      bgBlur: 25,
+      collapsedShape: "circle",
+      animationType: "fold",
+      albumArtSpin: true,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "accent-gradient",
+    },
+  },
+  {
+    id: "sakura-lofi",
+    accentColor: "#F43F5E",
+    settings: {
+      accentColor: "#F43F5E",
+      bgTheme: "gif",
+      activeGif: "lofi-girl-4",
+      bgOpacity: 85,
+      bgBlur: 8,
+      collapsedShape: "rounded-square",
+      animationType: "fade-zoom",
+      albumArtSpin: true,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "spotify-glow",
+    },
+  },
+];
+
 const COLOR_PRESETS = [
+  {
+    name: "Author's Favorite (#6F4A16)",
+    color: "#6F4A16",
+    isAuthorFav: true,
+  },
   { name: "Spotify Green", color: "#1DB954" },
-  { name: "Cyber Fiolet", color: "#A855F7" },
-  { name: "Neon Cyjan", color: "#06B6D4" },
-  { name: "Ognisty Karmin", color: "#F43F5E" },
-  { name: "Złoty Bursztyn", color: "#F59E0B" },
-  { name: "Arktyczna Biel", color: "#FFFFFF" },
+  { name: "Cyber Violet", color: "#A855F7" },
+  { name: "Neon Cyan", color: "#06B6D4" },
+  { name: "Crimson Rose", color: "#F43F5E" },
+  { name: "Sunset Amber", color: "#F59E0B" },
+  { name: "Arctic White", color: "#FFFFFF" },
 ];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -62,6 +179,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onUpdateCustomization,
   onResetCustomization,
 }) => {
+  const { t, language, setLanguage, availableLanguages } = useTranslation();
   const [activeTab, setActiveTab] = useState<"appearance" | "interaction" | "spotify">("appearance");
   const [inputClientId, setInputClientId] = useState(clientId);
   const [manualCode, setManualCode] = useState("");
@@ -102,84 +220,295 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setManualCode("");
   };
 
+  const getPresetLabels = (id: string) => {
+    switch (id) {
+      case "author-mocha":
+        return {
+          name: t.settings.presets.authorMocha,
+          desc: t.settings.presets.authorMochaDesc,
+          badge: t.settings.presets.authorBadge,
+        };
+      case "spotify-classic":
+        return {
+          name: t.settings.presets.spotifyClassic,
+          desc: t.settings.presets.spotifyClassicDesc,
+          badge: t.settings.presets.classicBadge,
+        };
+      case "cyber-neon":
+        return {
+          name: t.settings.presets.cyberNeon,
+          desc: t.settings.presets.cyberNeonDesc,
+          badge: t.settings.presets.cyberBadge,
+        };
+      case "aqua-frost":
+        return {
+          name: t.settings.presets.aquaFrost,
+          desc: t.settings.presets.aquaFrostDesc,
+          badge: t.settings.presets.minimalBadge,
+        };
+      case "sunset-amber":
+        return {
+          name: t.settings.presets.sunsetAmber,
+          desc: t.settings.presets.sunsetAmberDesc,
+          badge: t.settings.presets.warmBadge,
+        };
+      case "sakura-lofi":
+      default:
+        return {
+          name: t.settings.presets.lofiSakura,
+          desc: t.settings.presets.lofiSakuraDesc,
+          badge: t.settings.presets.lofiBadge,
+        };
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75 backdrop-blur-md select-none animate-fadeIn">
-      <div className="w-full max-w-[340px] max-h-[520px] rounded-2xl glass-panel p-4 text-white shadow-2xl border border-white/10 flex flex-col gap-3 overflow-hidden">
-        {/* Header with Close */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-md select-none animate-fadeIn">
+      <div className="w-full max-w-[94%] sm:max-w-[430px] max-h-[92%] sm:max-h-[560px] h-full sm:h-auto rounded-2xl glass-panel p-3.5 sm:p-4 text-white shadow-2xl border border-white/10 flex flex-col gap-3 overflow-hidden">
+        {/* Header with Language Selector & Close */}
         <div className="flex items-center justify-between border-b border-white/10 pb-2.5 shrink-0">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4" style={{ color: "var(--accent-color)" }} />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-white">Ustawienia Widgetu</h2>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-white">
+              {t.settings.title}
+            </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Language Switcher */}
+            <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-white/10 text-[10px]">
+              <Languages className="w-3 h-3 text-white/50 ml-1" />
+              {availableLanguages.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => setLanguage(l.code)}
+                  className={`px-1.5 py-0.5 rounded font-semibold transition ${
+                    language === l.code
+                      ? "bg-white/20 text-white shadow-sm"
+                      : "text-white/40 hover:text-white/80"
+                  }`}
+                  title={l.name}
+                >
+                  {l.nativeName}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={onClose}
+              className="p-1 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition"
+              title={t.common.close}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* Tab Navigation (Original 3-tab layout) */}
+        {/* Tab Navigation */}
         <div className="grid grid-cols-3 gap-1 bg-black/40 p-1 rounded-xl border border-white/5 shrink-0">
           <button
             onClick={() => setActiveTab("appearance")}
-            className={`py-1.5 px-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 sm:px-2 rounded-lg text-[10.5px] sm:text-[11px] font-semibold transition flex items-center justify-center gap-1.5 truncate ${
               activeTab === "appearance"
                 ? "bg-white/15 text-white shadow-sm"
                 : "text-white/40 hover:text-white/70"
             }`}
           >
-            <Palette className="w-3 h-3" style={activeTab === "appearance" ? { color: "var(--accent-color)" } : {}} />
-            Wygląd
+            <Palette className="w-3 h-3 shrink-0" style={activeTab === "appearance" ? { color: "var(--accent-color)" } : {}} />
+            <span>{t.settings.tabs.appearance}</span>
           </button>
           <button
             onClick={() => setActiveTab("interaction")}
-            className={`py-1.5 px-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 sm:px-2 rounded-lg text-[10.5px] sm:text-[11px] font-semibold transition flex items-center justify-center gap-1.5 truncate ${
               activeTab === "interaction"
                 ? "bg-white/15 text-white shadow-sm"
                 : "text-white/40 hover:text-white/70"
             }`}
           >
-            <SlidersHorizontal className="w-3 h-3" style={activeTab === "interaction" ? { color: "var(--accent-color)" } : {}} />
-            Sterowanie
+            <SlidersHorizontal className="w-3 h-3 shrink-0" style={activeTab === "interaction" ? { color: "var(--accent-color)" } : {}} />
+            <span>{t.settings.tabs.interaction}</span>
           </button>
           <button
             onClick={() => setActiveTab("spotify")}
-            className={`py-1.5 px-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 sm:px-2 rounded-lg text-[10.5px] sm:text-[11px] font-semibold transition flex items-center justify-center gap-1.5 truncate ${
               activeTab === "spotify"
                 ? "bg-white/15 text-white shadow-sm"
                 : "text-white/40 hover:text-white/70"
             }`}
           >
-            <Key className="w-3 h-3" style={activeTab === "spotify" ? { color: "var(--accent-color)" } : {}} />
-            Spotify API
+            <Key className="w-3 h-3 shrink-0" style={activeTab === "spotify" ? { color: "var(--accent-color)" } : {}} />
+            <span>{t.settings.tabs.spotify}</span>
           </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1 lyrics-scroll-container">
-          {/* TAB 1: WYGLĄD (KIERUNKI, ANIMACJE, KOLORY, MOTYWY) */}
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1 sm:pr-1.5 lyrics-scroll-container">
+          {/* TAB 1: APPEARANCE */}
           {activeTab === "appearance" && (
             <div className="space-y-4 text-xs">
-              {/* Kierunek Zwijania */}
+              {/* 1. CURATED THEME PRESETS */}
+              <div className="space-y-2 bg-black/25 p-2.5 rounded-xl border border-white/5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Wand2 className="w-3.5 h-3.5 text-amber-400" />
+                    <label className="text-[11px] font-bold text-white tracking-wide">
+                      {t.settings.presets.title}
+                    </label>
+                  </div>
+                  <span className="text-[10px] text-white/40">{t.settings.presets.oneClick}</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  {THEME_PRESET_CONFIGS.map((preset) => {
+                    const isSelected =
+                      customization.accentColor.toLowerCase() === preset.settings.accentColor?.toLowerCase() &&
+                      customization.bgTheme === preset.settings.bgTheme;
+                    const labels = getPresetLabels(preset.id);
+
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => onUpdateCustomization(preset.settings)}
+                        className={`relative p-2 rounded-xl text-left border transition-all flex flex-col justify-between gap-1 group ${
+                          isSelected
+                            ? "border-[var(--accent-color)] bg-white/15 ring-1 ring-[var(--accent-color)]/60 shadow-md"
+                            : preset.isAuthorFav
+                            ? "border-amber-500/40 bg-amber-500/10 hover:border-amber-400 hover:bg-amber-500/15"
+                            : "border-white/10 bg-black/30 hover:border-white/20 hover:bg-white/5"
+                        }`}
+                      >
+                        {/* Top row: color dot, title, badge */}
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                              style={{ backgroundColor: preset.accentColor }}
+                            />
+                            <span className="text-[10px] sm:text-[10.5px] font-bold text-white truncate">
+                              {labels.name}
+                            </span>
+                          </div>
+                          {preset.isAuthorFav && (
+                            <span className="text-[8px] font-bold px-1 py-0.2 rounded bg-amber-500/30 text-amber-300 border border-amber-400/40 flex items-center gap-0.5 shrink-0 ml-1">
+                              <Star className="w-2 h-2 fill-amber-300 text-amber-300" />
+                              {labels.badge}
+                            </span>
+                          )}
+                          {isSelected && !preset.isAuthorFav && (
+                            <Check className="w-3 h-3 text-white/90 shrink-0 ml-1" />
+                          )}
+                        </div>
+
+                        {/* Subtitle description */}
+                        <p className="text-[9px] text-white/50 leading-tight line-clamp-1">
+                          {labels.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Accent Color */}
+              <div className="space-y-2.5 bg-black/25 p-2.5 rounded-xl border border-white/5">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-1.5">
+                    <Palette className="w-3.5 h-3.5" style={{ color: "var(--accent-color)" }} />
+                    <label className="text-[11px] font-bold text-white tracking-wide">
+                      {t.settings.accentColor.title}
+                    </label>
+                  </div>
+                  <span className="text-[10px] font-mono text-white/60 bg-white/5 border border-white/10 px-2 py-0.5 rounded uppercase font-semibold">
+                    {customization.accentColor}
+                  </span>
+                </div>
+
+                {/* Swatches - perfectly aligned row */}
+                <div className="flex items-center justify-between gap-1 px-0.5 pt-0.5">
+                  {COLOR_PRESETS.map((preset) => {
+                    const isFav = Boolean((preset as any).isAuthorFav);
+                    const isSelected =
+                      customization.accentColor.toLowerCase() === preset.color.toLowerCase();
+
+                    return (
+                      <div key={preset.color} className="w-7 h-7 flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => onUpdateCustomization({ accentColor: preset.color })}
+                          className={`w-6 h-6 rounded-full transition-all flex items-center justify-center relative ${
+                            isFav ? "border border-amber-400/80" : "border border-white/20"
+                          } ${
+                            isSelected
+                              ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-950 scale-105 shadow-md"
+                              : "hover:scale-110 opacity-80 hover:opacity-100"
+                          }`}
+                          style={{ backgroundColor: preset.color }}
+                          title={preset.name}
+                        >
+                          {isSelected && (
+                            <Check className="w-3 h-3 text-white stroke-[3] drop-shadow" />
+                          )}
+                          {isFav && !isSelected && (
+                            <Star className="w-2 h-2 text-amber-300 fill-amber-300 absolute -top-0.5 -right-0.5 drop-shadow" />
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                  {/* Custom color picker */}
+                  <div className="w-7 h-7 flex items-center justify-center">
+                    <label
+                      className="w-6 h-6 rounded-full border border-white/30 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-110 transition bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500"
+                      title={t.settings.accentColor.customColor}
+                    >
+                      <input
+                        type="color"
+                        value={customization.accentColor}
+                        onChange={(e) => onUpdateCustomization({ accentColor: e.target.value })}
+                        className="opacity-0 w-0 h-0 cursor-pointer"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Subtitle / badge info for active color */}
+                {customization.accentColor.toLowerCase() === "#6f4a16" ? (
+                  <div className="flex items-center gap-1.5 text-[10px] text-amber-300/90 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1.5 rounded-lg">
+                    <Star className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
+                    <span>{t.settings.presets.authorFavNotice}</span>
+                  </div>
+                ) : (
+                  <div className="text-[10px] text-white/50 px-1 pt-0.5 flex items-center justify-between">
+                    <span>
+                      {t.settings.accentColor.activeColor}:{" "}
+                      <span className="text-white font-mono font-semibold">{customization.accentColor}</span>
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Collapse Direction (Anchor) */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Kierunek zwijania (Kotwica)
+                  {t.settings.collapseDirection.title}
                 </label>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {(
                     [
-                      { id: "top-right", label: "Prawy górny ↗" },
-                      { id: "top-left", label: "Lewy górny ↖" },
-                      { id: "bottom-right", label: "Prawy dolny ↘" },
-                      { id: "bottom-left", label: "Lewy dolny ↙" },
-                      { id: "center", label: "Do środka ⦿" },
+                      { id: "top-right", label: t.settings.collapseDirection.topRight },
+                      { id: "top-left", label: t.settings.collapseDirection.topLeft },
+                      { id: "bottom-right", label: t.settings.collapseDirection.bottomRight },
+                      { id: "bottom-left", label: t.settings.collapseDirection.bottomLeft },
+                      { id: "center", label: t.settings.collapseDirection.center },
                     ] as { id: CollapseDirection; label: string }[]
                   ).map((dir) => (
                     <button
                       key={dir.id}
                       onClick={() => onUpdateCustomization({ collapseDirection: dir.id })}
-                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition ${
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition truncate ${
                         customization.collapseDirection === dir.id
                           ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
                           : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
@@ -191,26 +520,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Styl Animacji */}
+              {/* Animation Style */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Styl animacji otwierania/zwijania
+                  {t.settings.animation.title}
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {(
                     [
-                      { id: "spring", label: "Płynna sprężyna" },
-                      { id: "fade-zoom", label: "Kinowy zoom & blur" },
-                      { id: "slide", label: "Czysty slide" },
-                      { id: "elastic", label: "Elastyczny pop" },
-                      { id: "fold", label: "3D Acrylic fold" },
-                      { id: "minimal", label: "Minimalistyczna" },
+                      { id: "spring", label: t.settings.animation.spring },
+                      { id: "fade-zoom", label: t.settings.animation.fadeZoom },
+                      { id: "slide", label: t.settings.animation.slide },
+                      { id: "elastic", label: t.settings.animation.elastic },
+                      { id: "fold", label: t.settings.animation.fold },
+                      { id: "minimal", label: t.settings.animation.minimal },
                     ] as { id: AnimationType; label: string }[]
                   ).map((anim) => (
                     <button
                       key={anim.id}
                       onClick={() => onUpdateCustomization({ animationType: anim.id })}
-                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition ${
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition truncate ${
                         customization.animationType === anim.id
                           ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
                           : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
@@ -222,10 +551,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Szybkość animacji */}
+              {/* Animation Speed */}
               <div className="space-y-1 bg-black/20 p-2.5 rounded-xl border border-white/5">
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-white/70">Długość animacji:</span>
+                  <span className="text-white/70">{t.settings.animation.speedTitle}:</span>
                   <span className="font-mono text-white/90 font-bold">
                     {customization.animationSpeedMs} ms
                   </span>
@@ -244,72 +573,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 />
               </div>
 
-              {/* Kolor Wiodący (Accent) */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-[11px] font-semibold text-white/80">
-                    Kolor wiodący (Akcent)
-                  </label>
-                  <span className="text-[10px] font-mono text-white/40 uppercase">
-                    {customization.accentColor}
-                  </span>
-                </div>
-                {/* Presets */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  {COLOR_PRESETS.map((preset) => (
-                    <button
-                      key={preset.color}
-                      onClick={() => onUpdateCustomization({ accentColor: preset.color })}
-                      className={`w-6 h-6 rounded-full transition-transform border border-white/20 flex items-center justify-center ${
-                        customization.accentColor.toLowerCase() === preset.color.toLowerCase()
-                          ? "scale-125 ring-2 ring-white/60"
-                          : "hover:scale-110 opacity-75 hover:opacity-100"
-                      }`}
-                      style={{ backgroundColor: preset.color }}
-                      title={preset.name}
-                    >
-                      {customization.accentColor.toLowerCase() === preset.color.toLowerCase() && (
-                        <Check className="w-3 h-3 text-black stroke-[3]" />
-                      )}
-                    </button>
-                  ))}
-                  {/* Custom color picker */}
-                  <label
-                    className="w-6 h-6 rounded-full border border-white/30 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-110 transition bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500"
-                    title="Wybierz własny kolor"
-                  >
-                    <input
-                      type="color"
-                      value={customization.accentColor}
-                      onChange={(e) => onUpdateCustomization({ accentColor: e.target.value })}
-                      className="opacity-0 w-0 h-0 cursor-pointer"
-                    />
-                  </label>
-                </div>
-              </div>
-
-              {/* Styl Tła & Szkła */}
+              {/* Background Style */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Styl tła
+                  {t.settings.background.title}
                 </label>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                   {(
                     [
-                      { id: "glass", label: "Szkło Akrylowe" },
-                      { id: "oled", label: "Czysty OLED" },
-                      { id: "frosted", label: "Mroźne Szkło" },
-                      { id: "gradient", label: "Neon Gradient" },
-                      { id: "aurora", label: "Dynamiczna Zorza" },
-                      { id: "particles", label: "Gwiezdny Pył" },
-                      { id: "mesh", label: "Mesh Gradient" },
-                      { id: "gif", label: "Animowany GIF" },
+                      { id: "glass", label: t.settings.background.glass },
+                      { id: "oled", label: t.settings.background.oled },
+                      { id: "frosted", label: t.settings.background.frosted },
+                      { id: "gradient", label: t.settings.background.gradient },
+                      { id: "aurora", label: t.settings.background.aurora },
+                      { id: "particles", label: t.settings.background.particles },
+                      { id: "mesh", label: t.settings.background.mesh },
+                      { id: "gif", label: t.settings.background.gif },
                     ] as { id: BackgroundTheme; label: string }[]
                   ).map((theme) => (
                     <button
                       key={theme.id}
                       onClick={() => onUpdateCustomization({ bgTheme: theme.id })}
-                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition ${
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-center transition truncate ${
                         customization.bgTheme === theme.id
                           ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
                           : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
@@ -321,15 +606,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Wybór konkretnego GIF-a (nowy select po zaznaczeniu opcji tła GIF) */}
+              {/* GIF Selection */}
               {customization.bgTheme === "gif" && (
                 <div className="space-y-2 bg-black/30 p-2.5 rounded-xl border border-[var(--accent-color)]/30 animate-fadeIn">
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-semibold text-white/90">
-                      Wybierz animowany GIF w tle
+                      {t.settings.background.selectGif}
                     </label>
                     <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--accent-color)]/20 text-[var(--accent-color)] font-bold">
-                      Offline
+                      {t.settings.background.offline}
                     </span>
                   </div>
 
@@ -345,7 +630,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     ))}
                   </select>
 
-                  {/* Podgląd wybranego GIF-a */}
+                  {/* GIF Preview */}
                   <div className="relative w-full h-24 rounded-lg overflow-hidden border border-white/10 bg-black/50">
                     <img
                       src={
@@ -369,11 +654,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               )}
 
-              {/* Przezroczystość & Blur */}
+              {/* Opacity & Blur */}
               <div className="space-y-2 bg-black/20 p-2.5 rounded-xl border border-white/5">
                 <div className="space-y-1">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-white/70">Krycie tła (Opacity):</span>
+                    <span className="text-white/70">{t.settings.background.opacity}:</span>
                     <span className="font-mono text-white/90 font-bold">
                       {customization.bgOpacity}%
                     </span>
@@ -393,7 +678,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 <div className="space-y-1 pt-1 border-t border-white/5">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-white/70">Rozmycie (Blur):</span>
+                    <span className="text-white/70">{t.settings.background.blur}:</span>
                     <span className="font-mono text-white/90 font-bold">
                       {customization.bgBlur} px
                     </span>
@@ -412,17 +697,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Kształt po zwinięciu */}
+              {/* Collapsed Widget Shape */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Kształt zwiniętego widgetu
+                  {t.settings.shape.title}
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(
                     [
-                      { id: "rounded-square", label: "Kwadrat" },
-                      { id: "circle", label: "Koło" },
-                      { id: "capsule", label: "Kapsułka" },
+                      { id: "rounded-square", label: t.settings.shape.square },
+                      { id: "circle", label: t.settings.shape.circle },
+                      { id: "capsule", label: t.settings.shape.capsule },
                     ] as { id: CollapsedShape; label: string }[]
                   ).map((shape) => (
                     <button
@@ -442,13 +727,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           )}
 
-          {/* TAB 2: STEROWANIE & ZWINIĘTY WIDGET */}
+          {/* TAB 2: CONTROLS & INTERACTION */}
           {activeTab === "interaction" && (
             <div className="space-y-4 text-xs">
-              {/* Sposób rozwijania: Na klik vs Na najechanie */}
+              {/* Expand Trigger */}
               <div className="space-y-1.5 bg-black/20 p-2.5 rounded-xl border border-white/5">
                 <label className="text-[11px] font-semibold text-white/90 block">
-                  Sposób rozwijania widgetu
+                  {t.settings.interaction.expandTriggerTitle}
                 </label>
                 <div className="grid grid-cols-2 gap-1.5 pt-0.5">
                   <button
@@ -459,7 +744,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
                     }`}
                   >
-                    Na najechanie myszką
+                    {t.settings.interaction.onHover}
                   </button>
 
                   <button
@@ -470,27 +755,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
                     }`}
                   >
-                    Tylko po kliknięciu
+                    {t.settings.interaction.onClick}
                   </button>
                 </div>
                 <span className="text-[10px] text-white/40 block pt-1">
                   {customization.expandTrigger === "click"
-                    ? "Widget rozwinie się dopiero po kliknięciu. Nie rozwinie się przypadkowo przy przejechaniu myszką."
-                    : "Widget rozwija się automatycznie, gdy wjedziesz kursorem w jego obszar."}
+                    ? t.settings.interaction.clickDesc
+                    : t.settings.interaction.hoverDesc}
                 </span>
               </div>
 
-              {/* Kontrolki w zwiniętym widżecie */}
+              {/* Buttons in Collapsed Widget */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Przyciski w zwiniętym widżecie
+                  {t.settings.interaction.collapsedControlsTitle}
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(
                     [
-                      { id: "hover", label: "Na hover" },
-                      { id: "always", label: "Zawsze" },
-                      { id: "none", label: "Ukryte" },
+                      { id: "hover", label: t.settings.interaction.controlsHover },
+                      { id: "always", label: t.settings.interaction.controlsAlways },
+                      { id: "none", label: t.settings.interaction.controlsHidden },
                     ] as { id: CollapsedControlsMode; label: string }[]
                   ).map((m) => (
                     <button
@@ -508,17 +793,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Styl paska postępu w zwiniętym widżecie */}
+              {/* Progress Indicator */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Wskaźnik postępu w zwiniętym widżecie
+                  {t.settings.interaction.progressIndicatorTitle}
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(
                     [
-                      { id: "radial", label: "Okrągły" },
-                      { id: "bar", label: "Na dole" },
-                      { id: "none", label: "Brak" },
+                      { id: "radial", label: t.settings.interaction.progressRadial },
+                      { id: "bar", label: t.settings.interaction.progressBottom },
+                      { id: "none", label: t.settings.interaction.progressNone },
                     ] as { id: CollapsedProgressStyle; label: string }[]
                   ).map((p) => (
                     <button
@@ -536,15 +821,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Efekty winylu i korektora */}
+              {/* Vinyl & Visualizer Effects */}
               <div className="space-y-2 bg-black/20 p-2.5 rounded-xl border border-white/5">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[11px] text-white/85 font-medium block">
-                      Obracanie płyty winylowej
+                      {t.settings.interaction.vinylSpin}
                     </span>
                     <span className="text-[10px] text-white/40 block">
-                      Zmienia okładkę w okrągły, obracający się winyl
+                      {t.settings.interaction.vinylSpinDesc}
                     </span>
                   </div>
                   <input
@@ -556,7 +841,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between pt-1.5 border-t border-white/5">
-                  <span className="text-[11px] text-white/70">Poświata za okładką (Ambient Glow)</span>
+                  <span className="text-[11px] text-white/70">
+                    {t.settings.interaction.ambientGlow}
+                  </span>
                   <input
                     type="checkbox"
                     checked={customization.albumArtGlow}
@@ -566,7 +853,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
 
                 <div className="flex items-center justify-between pt-1.5 border-t border-white/5">
-                  <span className="text-[11px] text-white/70">Animowany korektor (EQ Visualizer)</span>
+                  <span className="text-[11px] text-white/70">
+                    {t.settings.interaction.eqVisualizer}
+                  </span>
                   <input
                     type="checkbox"
                     checked={customization.showVisualizer}
@@ -576,17 +865,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Rozmiar czcionki tekstu */}
+              {/* Lyrics Font Size */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Rozmiar czcionki tekstu utworu
+                  {t.settings.interaction.lyricsFontSizeTitle}
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(
                     [
-                      { id: "small", label: "Mała" },
-                      { id: "medium", label: "Średnia" },
-                      { id: "large", label: "Duża" },
+                      { id: "small", label: t.settings.interaction.sizeSmall },
+                      { id: "medium", label: t.settings.interaction.sizeMedium },
+                      { id: "large", label: t.settings.interaction.sizeLarge },
                     ] as { id: "small" | "medium" | "large"; label: string }[]
                   ).map((size) => (
                     <button
@@ -604,17 +893,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Styl aktywnego wersu */}
+              {/* Active Lyric Line Style */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Styl aktywnego wersu tekstu
+                  {t.settings.interaction.activeLyricStyleTitle}
                 </label>
                 <div className="grid grid-cols-1 gap-1.5">
                   {(
                     [
-                      { id: "spotify-glow", label: "Pasek + Poświata akcentu" },
-                      { id: "accent-gradient", label: "Tekst w kolorze akcentu" },
-                      { id: "minimal-line", label: "Czysty pasek" },
+                      { id: "spotify-glow", label: t.settings.interaction.styleGlow },
+                      { id: "accent-gradient", label: t.settings.interaction.styleGradient },
+                      { id: "minimal-line", label: t.settings.interaction.styleLine },
                     ] as {
                       id: "spotify-glow" | "accent-gradient" | "minimal-line";
                       label: string;
@@ -635,10 +924,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Opóźnienie autozwijania */}
+              {/* Collapse Delay */}
               <div className="space-y-1 bg-black/20 p-2.5 rounded-xl border border-white/5">
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-white/70">Opóźnienie zwijania po zjechaniu kursoru:</span>
+                  <span className="text-white/70">{t.settings.interaction.collapseDelayTitle}:</span>
                   <span className="font-mono text-white/90 font-bold">
                     {customization.collapseDelayMs} ms
                   </span>
@@ -657,14 +946,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 />
               </div>
 
-              {/* Reset Button */}
+              {/* Reset Defaults */}
               <div className="pt-1">
                 <button
                   onClick={onResetCustomization}
                   className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  Przywróć ustawienia domyślne
+                  {t.settings.interaction.resetDefaults}
                 </button>
               </div>
             </div>
@@ -676,21 +965,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {/* Client ID config */}
               <div className="space-y-1.5">
                 <label className="text-[11px] text-white/70 font-semibold block">
-                  Spotify Client ID
+                  {t.settings.spotify.clientId}
                 </label>
                 <div className="flex gap-1.5">
                   <input
                     type="text"
                     value={inputClientId}
                     onChange={(e) => setInputClientId(e.target.value)}
-                    placeholder="Wklej Client ID..."
+                    placeholder={t.settings.spotify.pasteClientId}
                     className="flex-1 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent-color)] transition"
                   />
                   <button
                     onClick={handleSaveClientId}
                     className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold text-white transition active:scale-95"
                   >
-                    Zapisz
+                    {t.settings.spotify.save}
                   </button>
                 </div>
               </div>
@@ -698,7 +987,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {/* Redirect URI Info */}
               <div className="space-y-1.5 bg-black/20 rounded-xl p-2.5 border border-white/5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-white/60">Redirect URI (Spotify Dashboard):</span>
+                  <span className="text-[10px] text-white/60">{t.settings.spotify.redirectUri}:</span>
                   <button
                     onClick={handleCopyRedirect}
                     style={{ color: "var(--accent-color)" }}
@@ -706,11 +995,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   >
                     {copiedRedirect ? (
                       <>
-                        <Check className="w-3 h-3" /> Skopiowano
+                        <Check className="w-3 h-3" /> {t.settings.spotify.copied}
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3 h-3" /> Kopiuj
+                        <Copy className="w-3 h-3" /> {t.settings.spotify.copy}
                       </>
                     )}
                   </button>
@@ -736,13 +1025,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         className="w-2 h-2 rounded-full animate-pulse"
                         style={{ backgroundColor: "var(--accent-color)" }}
                       />
-                      Połączono ze Spotify
+                      {t.settings.spotify.connected}
                     </span>
                     <button
                       onClick={onLogout}
                       className="flex items-center gap-1 text-white/50 hover:text-red-400 text-xs transition"
                     >
-                      <LogOut className="w-3 h-3" /> Wyloguj
+                      <LogOut className="w-3 h-3" /> {t.settings.spotify.logout}
                     </button>
                   </div>
                 ) : (
@@ -752,7 +1041,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     className="w-full py-2.5 px-4 text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    Zaloguj przez Spotify (OAuth)
+                    {t.settings.spotify.loginWithSpotify}
                   </button>
                 )}
               </div>
@@ -761,21 +1050,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {!isAuthenticated && (
                 <div className="pt-2 border-t border-white/10 space-y-1.5">
                   <span className="text-[10px] text-white/50 block">
-                    Alternatywnie: wklej adres callback lub kod:
+                    {t.settings.spotify.manualFallback}
                   </span>
                   <div className="flex gap-1.5">
                     <input
                       type="text"
                       value={manualCode}
                       onChange={(e) => setManualCode(e.target.value)}
-                      placeholder="Wklej callback URL lub code..."
+                      placeholder={t.settings.spotify.pasteCallbackPlaceholder}
                       className="flex-1 bg-white/5 border border-white/10 rounded-xl px-2 py-1 text-[11px] text-white placeholder-white/20 focus:outline-none focus:border-[var(--accent-color)]"
                     />
                     <button
                       onClick={handleProcessManualCode}
                       className="px-2.5 py-1 rounded-xl text-[11px] font-semibold transition bg-white/10 hover:bg-white/20 text-white"
                     >
-                      Autoryzuj
+                      {t.settings.spotify.authorize}
                     </button>
                   </div>
                 </div>
