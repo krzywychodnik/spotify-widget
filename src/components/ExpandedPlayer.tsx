@@ -18,7 +18,7 @@ import {
   X,
   ChevronDown,
 } from "lucide-react";
-import { SpotifyTrack, LyricLine, AppCustomization } from "../types";
+import { SpotifyTrack, LyricLine, AppCustomization, PRESET_GIFS } from "../types";
 import { LyricsView } from "./LyricsView";
 
 interface ExpandedPlayerProps {
@@ -130,8 +130,74 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
     }
   };
 
+  const activeGifData =
+    PRESET_GIFS.find((g) => g.id === customization?.activeGif) || PRESET_GIFS[0];
+
   return (
     <div className="relative w-full h-full glass-panel rounded-3xl flex flex-col overflow-hidden text-white select-none transition-all duration-300 shadow-2xl">
+      {/* Dynamic Backgrounds (GIF, Aurora, Particles, Mesh) */}
+      {customization?.bgTheme === "gif" && activeGifData && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <img
+            src={activeGifData.file}
+            alt="GIF Background"
+            className="w-full h-full object-cover scale-105"
+            style={{
+              opacity: (customization.bgOpacity || 88) / 100,
+              filter: `blur(${Math.max(0, (customization.bgBlur || 0) * 0.3)}px)`,
+            }}
+          />
+          <div className="absolute inset-0 bg-black/45 backdrop-blur-[1px]" />
+        </div>
+      )}
+
+      {customization?.bgTheme === "aurora" && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <div
+            className="absolute -inset-10 opacity-70 animate-aurora-wave"
+            style={{
+              background: `radial-gradient(circle at 30% 30%, var(--accent-color) 0%, transparent 60%),
+                           radial-gradient(circle at 70% 70%, #ec4899 0%, transparent 65%),
+                           radial-gradient(circle at 50% 50%, #8b5cf6 0%, transparent 60%)`,
+              filter: "blur(40px)",
+            }}
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+      )}
+
+      {customization?.bgTheme === "particles" && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <div
+            className="absolute inset-0 opacity-60"
+            style={{
+              backgroundImage: `radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                                radial-gradient(2px 2px at 40px 70px, var(--accent-color), rgba(0,0,0,0)),
+                                radial-gradient(1.5px 1.5px at 90px 40px, #ec4899, rgba(0,0,0,0)),
+                                radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
+                                radial-gradient(2.5px 2.5px at 230px 80px, var(--accent-color), rgba(0,0,0,0)),
+                                radial-gradient(1.5px 1.5px at 290px 180px, #ffffff, rgba(0,0,0,0))`,
+              backgroundSize: "320px 240px",
+              animation: "meshFlow 40s linear infinite",
+            }}
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
+      )}
+
+      {customization?.bgTheme === "mesh" && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <div
+            className="absolute -inset-16 opacity-55 animate-mesh-flow"
+            style={{
+              background: `conic-gradient(from 180deg at 50% 50%, var(--accent-color) 0deg, #3b82f6 120deg, #ec4899 240deg, var(--accent-color) 360deg)`,
+              filter: "blur(60px)",
+            }}
+          />
+          <div className="absolute inset-0 bg-black/55" />
+        </div>
+      )}
+
       {/* Draggable Header */}
       <div
         data-tauri-drag-region

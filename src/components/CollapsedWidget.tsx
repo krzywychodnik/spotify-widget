@@ -63,28 +63,36 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
       onClick={handleWidgetClick}
       className={`group relative w-full h-full p-1.5 flex items-center justify-center cursor-pointer select-none transition-all duration-300 glass-panel-collapsed overflow-hidden shadow-2xl ${shapeClasses.wrapper}`}
     >
-      {/* 1. Radial progress border around album art */}
+      {/* 1. Radial progress ring framing album art */}
       {progressStyle === "radial" && (
-        <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-0.5 z-10">
+        <svg
+          viewBox="0 0 92 92"
+          className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none z-20"
+        >
+          {/* Background track circle - clearly visible */}
           <circle
-            cx="50%"
-            cy="50%"
-            r="42%"
-            className="stroke-white/10"
-            strokeWidth="2.5"
+            cx="46"
+            cy="46"
+            r="39"
+            stroke="rgba(255, 255, 255, 0.25)"
+            strokeWidth="3"
             fill="none"
           />
+          {/* Active progress ring */}
           <circle
-            cx="50%"
-            cy="50%"
-            r="42%"
+            cx="46"
+            cy="46"
+            r="39"
             stroke="var(--accent-color)"
-            className="transition-all duration-300"
-            strokeWidth="2.5"
-            strokeDasharray="260"
-            strokeDashoffset={260 - (260 * Math.max(0, Math.min(100, progressPercent))) / 100}
+            strokeWidth="3.5"
+            strokeDasharray="245"
+            strokeDashoffset={245 - (245 * Math.max(0, Math.min(100, progressPercent))) / 100}
             strokeLinecap="round"
             fill="none"
+            style={{
+              filter: "drop-shadow(0 0 5px var(--accent-glow))",
+              transition: isPlaying ? "stroke-dashoffset 0.2s linear" : "none",
+            }}
           />
         </svg>
       )}

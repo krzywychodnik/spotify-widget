@@ -14,6 +14,7 @@ export const DEFAULT_CUSTOMIZATION: AppCustomization = {
   // Appearance & Colors
   accentColor: "#1DB954",
   bgTheme: "glass",
+  activeGif: "lofi-hiphop-1",
   bgBlur: 36,
   bgOpacity: 88,
   collapsedShape: "rounded-square",

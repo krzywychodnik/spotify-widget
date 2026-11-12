@@ -21,6 +21,7 @@ import {
   CollapsedShape,
   CollapsedControlsMode,
   CollapsedProgressStyle,
+  PRESET_GIFS,
 } from "../types";
 
 interface SettingsModalProps {
@@ -298,7 +299,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       { id: "glass", label: "Szkło Akrylowe" },
                       { id: "oled", label: "Czysty OLED" },
                       { id: "frosted", label: "Mroźne Szkło" },
-                      { id: "gradient", label: "Gradient" },
+                      { id: "gradient", label: "Neon Gradient" },
+                      { id: "aurora", label: "Dynamiczna Zorza" },
+                      { id: "particles", label: "Gwiezdny Pył" },
+                      { id: "mesh", label: "Mesh Gradient" },
+                      { id: "gif", label: "Animowany GIF" },
                     ] as { id: BackgroundTheme; label: string }[]
                   ).map((theme) => (
                     <button
@@ -315,6 +320,54 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   ))}
                 </div>
               </div>
+
+              {/* Wybór konkretnego GIF-a (nowy select po zaznaczeniu opcji tła GIF) */}
+              {customization.bgTheme === "gif" && (
+                <div className="space-y-2 bg-black/30 p-2.5 rounded-xl border border-[var(--accent-color)]/30 animate-fadeIn">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-semibold text-white/90">
+                      Wybierz animowany GIF w tle
+                    </label>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-[var(--accent-color)]/20 text-[var(--accent-color)] font-bold">
+                      Offline
+                    </span>
+                  </div>
+
+                  <select
+                    value={customization.activeGif || "lofi-hiphop-1"}
+                    onChange={(e) => onUpdateCustomization({ activeGif: e.target.value })}
+                    className="w-full bg-zinc-900 border border-white/20 rounded-lg py-1.5 px-2 text-xs text-white focus:outline-none focus:border-[var(--accent-color)] cursor-pointer"
+                  >
+                    {PRESET_GIFS.map((g) => (
+                      <option key={g.id} value={g.id} className="bg-zinc-900 text-white py-1">
+                        {g.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Podgląd wybranego GIF-a */}
+                  <div className="relative w-full h-24 rounded-lg overflow-hidden border border-white/10 bg-black/50">
+                    <img
+                      src={
+                        PRESET_GIFS.find(
+                          (g) => g.id === (customization.activeGif || "lofi-hiphop-1")
+                        )?.file
+                      }
+                      alt="GIF Preview"
+                      className="w-full h-full object-cover opacity-90"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2">
+                      <span className="text-[10px] text-white/90 font-medium truncate">
+                        {
+                          PRESET_GIFS.find(
+                            (g) => g.id === (customization.activeGif || "lofi-hiphop-1")
+                          )?.label
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Przezroczystość & Blur */}
               <div className="space-y-2 bg-black/20 p-2.5 rounded-xl border border-white/5">
