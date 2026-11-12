@@ -36,7 +36,7 @@ Aplikacja pływa ponad grami, przeglądarką i programami, zajmuje minimalną il
 2. Kliknij **Create App**:
    - **App name:** `Spotify Mini Player`
    - **App description:** `Desktop Floating Overlay`
-   - **Redirect URI:** `http://localhost:8888/callback` *(ważne: dokładnie ten adres)*
+   - **Redirect URI:** `http://127.0.0.1:8888/callback` *(ważne: użyj dokładnie adresu IP 127.0.0.1, Spotify odrzuca słowo "localhost")*
    - **Which API/SDKs are you planning to use:** Wybierz **Web API**.
 3. Zapisz aplikację i skopiuj swój **Client ID**.
 

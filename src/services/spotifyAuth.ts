@@ -16,7 +16,7 @@ export const SCOPES = [
   "user-read-currently-playing",
 ].join(" ");
 
-export const REDIRECT_URI = "http://localhost:8888/callback";
+export const REDIRECT_URI = "http://127.0.0.1:8888/callback";
 
 // Generate random string for code verifier
 function generateRandomString(length: number): string {
