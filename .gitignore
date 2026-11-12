@@ -11,6 +11,8 @@ dist-ssr/
 src-tauri/target/
 *.exe
 *.dll
+SpotifyMiniPlayer.exe
+Spotify-Widget.exe
 
 # Local toolchain
 .toolchain/
