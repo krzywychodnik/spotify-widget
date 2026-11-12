@@ -42,10 +42,12 @@ export const App: React.FC = () => {
 
   const {
     isExpanded,
+    isCollapsing,
     isPinned,
     togglePin,
     handleMouseEnter,
     handleMouseLeave,
+    closeApp,
   } = useWindowControl();
 
   // Listen for Tauri OAuth callback events from the Rust backend
@@ -94,7 +96,11 @@ export const App: React.FC = () => {
       className="relative w-full h-full flex items-center justify-center p-1 overflow-hidden"
     >
       {isExpanded ? (
-        <div className="w-full h-full animate-expand-spring">
+        <div
+          className={`w-full h-full ${
+            isCollapsing ? "animate-collapse-spring" : "animate-expand-spring"
+          }`}
+        >
           <ExpandedPlayer
             currentTrack={currentTrack}
             isPlaying={isPlaying}
@@ -113,6 +119,7 @@ export const App: React.FC = () => {
             onToggleShuffle={toggleShuffle}
             onToggleRepeat={toggleRepeat}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onCloseApp={closeApp}
             lyrics={lyrics}
             activeLineIndex={activeLineIndex}
             isLyricsLoading={isLyricsLoading}
@@ -122,7 +129,7 @@ export const App: React.FC = () => {
           />
         </div>
       ) : (
-        <div className="w-full h-full transition-all duration-300">
+        <div className="w-full h-full animate-collapsed-entry flex items-center justify-center">
           <CollapsedWidget
             currentTrack={currentTrack}
             isPlaying={isPlaying}

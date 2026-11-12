@@ -30,11 +30,27 @@ fn resize_widget(
                 x: cur_pos.x + delta_px,
                 y: cur_pos.y,
             };
-            let _ = window.set_position(Position::Physical(new_pos));
+
+            if delta_px > 0 {
+                // COLLAPSING: shrink window size FIRST so it won't be clamped by monitor boundaries
+                let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+                let _ = window.set_position(Position::Physical(new_pos));
+                return Ok(());
+            } else {
+                // EXPANDING: move position left FIRST to make room, then expand
+                let _ = window.set_position(Position::Physical(new_pos));
+                let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+                return Ok(());
+            }
         }
     }
     let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
     Ok(())
+}
+
+#[tauri::command]
+fn close_widget(app_handle: tauri::AppHandle) {
+    app_handle.exit(0);
 }
 
 #[tauri::command]
@@ -167,7 +183,7 @@ fn start_local_oauth_listener(app_handle: tauri::AppHandle) {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![resize_widget, set_always_on_top])
+        .invoke_handler(tauri::generate_handler![resize_widget, set_always_on_top, close_widget])
         .setup(|app| {
             let app_handle = app.handle().clone();
 

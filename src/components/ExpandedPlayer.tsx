@@ -15,6 +15,7 @@ import {
   Mic,
   Disc3,
   GripHorizontal,
+  X,
 } from "lucide-react";
 import { SpotifyTrack, LyricLine } from "../types";
 import { LyricsView } from "./LyricsView";
@@ -37,6 +38,7 @@ interface ExpandedPlayerProps {
   onToggleShuffle: () => void;
   onToggleRepeat: () => void;
   onOpenSettings: () => void;
+  onCloseApp: () => void;
   lyrics: LyricLine[];
   activeLineIndex: number;
   isLyricsLoading: boolean;
@@ -71,6 +73,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   onToggleShuffle,
   onToggleRepeat,
   onOpenSettings,
+  onCloseApp,
   lyrics,
   activeLineIndex,
   isLyricsLoading,
@@ -171,6 +174,15 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             title="Ustawienia API"
           >
             <Settings className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Close button */}
+          <button
+            onClick={onCloseApp}
+            className="p-1.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/15 transition active:scale-95"
+            title="Zamknij widget"
+          >
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
