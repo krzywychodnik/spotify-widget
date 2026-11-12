@@ -1,4 +1,4 @@
-import { SpotifyPlaybackState } from "../types";
+import { SpotifyPlaybackState, SpotifyPlaylist } from "../types";
 import { getStoredTokens, refreshAccessToken, getStoredClientId } from "./spotifyAuth";
 
 const BASE_URL = "https://api.spotify.com/v1";
@@ -110,4 +110,13 @@ export async function spotifySetShuffle(state: boolean): Promise<void> {
 
 export async function spotifySetRepeat(state: "off" | "track" | "context"): Promise<void> {
   await spotifyRequest(`/me/player/repeat?state=${state}`, "PUT");
+}
+
+export async function fetchUserPlaylists(limit: number = 50): Promise<SpotifyPlaylist[]> {
+  const data = await spotifyRequest<{ items: SpotifyPlaylist[] }>(`/me/playlists?limit=${limit}`);
+  return data?.items || [];
+}
+
+export async function spotifyPlayContext(contextUri: string): Promise<void> {
+  await spotifyRequest("/me/player/play", "PUT", { context_uri: contextUri });
 }

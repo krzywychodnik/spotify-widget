@@ -42,6 +42,7 @@ export const App: React.FC = () => {
     changeVolume,
     toggleShuffle,
     toggleRepeat,
+    playPlaylist,
   } = useSpotifyPlayer(isAuthenticated);
 
   const { lyrics, activeLineIndex, isLoading: isLyricsLoading, scrollContainerRef } =
@@ -140,6 +141,7 @@ export const App: React.FC = () => {
             isAuthenticated={isAuthenticated}
             onLoginClick={() => setIsSettingsOpen(true)}
             customization={customization}
+            onPlayPlaylist={playPlaylist}
           />
         </div>
       ) : (

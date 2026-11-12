@@ -9,6 +9,7 @@ import {
   spotifySetVolume,
   spotifySetShuffle,
   spotifySetRepeat,
+  spotifyPlayContext,
 } from "../services/spotifyApi";
 import { SpotifyPlaybackState } from "../types";
 
@@ -227,6 +228,15 @@ export function useSpotifyPlayer(isAuthenticated: boolean) {
     }
   }, [playbackState, refreshState]);
 
+  const playPlaylist = useCallback(async (uri: string) => {
+    try {
+      await spotifyPlayContext(uri);
+      setTimeout(() => refreshState(), 500);
+    } catch (err) {
+      console.error("Play playlist failed:", err);
+    }
+  }, [refreshState]);
+
   return {
     playbackState,
     currentTrack: playbackState?.item || null,
@@ -244,6 +254,7 @@ export function useSpotifyPlayer(isAuthenticated: boolean) {
     changeVolume,
     toggleShuffle,
     toggleRepeat,
+    playPlaylist,
     refreshState,
   };
 }

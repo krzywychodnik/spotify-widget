@@ -38,6 +38,16 @@ export interface SpotifyTrack {
   uri: string;
 }
 
+export interface SpotifyPlaylist {
+  id: string;
+  name: string;
+  description: string;
+  images: SpotifyAlbumImage[];
+  tracks: { total: number };
+  uri: string;
+  owner: { display_name: string };
+}
+
 export interface SpotifyPlaybackState {
   device?: SpotifyDevice;
   repeat_state: 'off' | 'track' | 'context';

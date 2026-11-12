@@ -17,10 +17,12 @@ import {
   GripHorizontal,
   X,
   ChevronDown,
+  ListMusic,
 } from "lucide-react";
 import { SpotifyTrack, LyricLine, AppCustomization, PRESET_GIFS } from "../types";
 import { LyricsView } from "./LyricsView";
 import { ParticlesBackground } from "./ParticlesBackground";
+import { PlaylistsView } from "./PlaylistsView";
 
 interface ExpandedPlayerProps {
   currentTrack: SpotifyTrack | null;
@@ -49,6 +51,7 @@ interface ExpandedPlayerProps {
   isAuthenticated: boolean;
   onLoginClick: () => void;
   customization?: AppCustomization;
+  onPlayPlaylist?: (uri: string) => void;
 }
 
 function formatTime(ms: number): string {
@@ -86,8 +89,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   isAuthenticated,
   onLoginClick,
   customization,
+  onPlayPlaylist,
 }) => {
-  const [activeTab, setActiveTab] = useState<"player" | "lyrics">("player");
+  const [activeTab, setActiveTab] = useState<"player" | "lyrics" | "playlists">("player");
   const [isMuted, setIsMuted] = useState(false);
   const [prevVolume, setPrevVolume] = useState(volume);
 
@@ -243,6 +247,20 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 />
               )}
             </button>
+            <button
+              onClick={() => setActiveTab("playlists")}
+              className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition flex items-center gap-1 ${
+                activeTab === "playlists"
+                  ? "bg-white/15 text-white shadow-sm"
+                  : "text-white/40 hover:text-white/80"
+              }`}
+              title="Twoje playlisty"
+            >
+              <ListMusic
+                className="w-3 h-3"
+                style={activeTab === "playlists" ? { color: "var(--accent-color)" } : {}}
+              />
+            </button>
           </div>
 
           {/* Minimize / Collapse Button (Click to collapse) */}
@@ -370,12 +388,25 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             />
           </div>
         </div>
+      ) : activeTab === "playlists" ? (
+        /* Playlists View */
+        <PlaylistsView
+          onPlayPlaylist={(uri) => {
+            onPlayPlaylist?.(uri);
+            setActiveTab("player");
+          }}
+          onBackToPlayer={() => setActiveTab("player")}
+        />
       ) : (
         /* Player View */
         <div className="flex-1 min-h-0 flex flex-col justify-between p-3.5 sm:p-5 overflow-hidden z-10">
           {/* Album Artwork & Info */}
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center gap-2 sm:gap-3 my-auto">
-            <div className="relative group/art w-auto h-auto max-w-[210px] max-h-[36vh] min-w-[80px] min-h-[80px] aspect-square flex items-center justify-center my-auto shrink-1">
+            <div
+              onClick={() => setActiveTab("playlists")}
+              className="relative group/art w-auto h-auto max-w-[210px] max-h-[36vh] min-w-[80px] min-h-[80px] aspect-square flex items-center justify-center my-auto shrink-1 cursor-pointer transition-transform duration-200 active:scale-95"
+              title="Kliknij, aby otworzyć playlisty"
+            >
               {/* Optional ambient colorful glow behind album art */}
               {customization?.albumArtGlow && (
                 <div
@@ -386,6 +417,16 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                   }}
                 />
               )}
+
+              {/* Hover hint badge */}
+              <div
+                className={`absolute inset-0 z-20 bg-black/50 opacity-0 group-hover/art:opacity-100 flex flex-col items-center justify-center gap-1 transition-opacity duration-200 pointer-events-none ${getAlbumArtRadius()}`}
+              >
+                <ListMusic className="w-6 h-6 text-white drop-shadow" />
+                <span className="text-[10px] font-semibold text-white/95 bg-black/60 px-2.5 py-0.5 rounded-full backdrop-blur-sm border border-white/20">
+                  Twoje playlisty
+                </span>
+              </div>
 
               {/* Album Artwork or Vinyl Disc */}
               <div
