@@ -61,32 +61,32 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
     <div
       data-tauri-drag-region
       onClick={handleWidgetClick}
-      className={`group relative w-full h-full p-1.5 flex items-center justify-center cursor-pointer select-none transition-all duration-300 glass-panel-collapsed overflow-hidden shadow-2xl ${shapeClasses.wrapper}`}
+      className={`group relative w-full h-full p-2 flex items-center justify-center cursor-pointer select-none transition-all duration-300 glass-panel-collapsed overflow-hidden shadow-2xl ${shapeClasses.wrapper}`}
     >
       {/* 1. Radial progress ring framing album art */}
       {progressStyle === "radial" && (
         <svg
-          viewBox="0 0 92 92"
+          viewBox="0 0 104 104"
           className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none z-20"
         >
           {/* Background track circle - clearly visible */}
           <circle
-            cx="46"
-            cy="46"
-            r="39"
+            cx="52"
+            cy="52"
+            r="44"
             stroke="rgba(255, 255, 255, 0.25)"
             strokeWidth="3"
             fill="none"
           />
           {/* Active progress ring */}
           <circle
-            cx="46"
-            cy="46"
-            r="39"
+            cx="52"
+            cy="52"
+            r="44"
             stroke="var(--accent-color)"
             strokeWidth="3.5"
-            strokeDasharray="245"
-            strokeDashoffset={245 - (245 * Math.max(0, Math.min(100, progressPercent))) / 100}
+            strokeDasharray="276.5"
+            strokeDashoffset={276.5 - (276.5 * Math.max(0, Math.min(100, progressPercent))) / 100}
             strokeLinecap="round"
             fill="none"
             style={{
@@ -99,7 +99,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
 
       {/* 2. Bottom linear progress bar */}
       {progressStyle === "bar" && (
-        <div className="absolute bottom-1 left-2.5 right-2.5 h-1 bg-white/15 rounded-full overflow-hidden z-20 pointer-events-none">
+        <div className="absolute bottom-1.5 left-3 right-3 h-1 bg-white/15 rounded-full overflow-hidden z-20 pointer-events-none">
           <div
             className="h-full rounded-full"
             style={{
@@ -112,7 +112,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
 
       {/* Album Artwork or Vinyl Disc Container */}
       <div
-        className={`relative w-[70%] h-[70%] max-w-[70%] max-h-[70%] aspect-square overflow-hidden shadow-md flex items-center justify-center bg-zinc-950 border border-white/10 z-10 ${shapeClasses.inner}`}
+        className={`relative w-[76px] h-[76px] aspect-square overflow-hidden shadow-md flex items-center justify-center bg-zinc-950 border border-white/10 z-10 ${shapeClasses.inner}`}
       >
         {/* Rotating Layer: Only the album art and vinyl spin */}
         <div
@@ -124,12 +124,14 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
             <img
               src={albumArt}
               alt="Album cover"
-              className={`w-full h-full object-cover transition-transform duration-500 ${
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
+              className={`w-full h-full object-cover select-none pointer-events-none transition-transform duration-500 ${
                 isPlaying && !isVinyl ? "scale-105" : "scale-100 opacity-90"
               }`}
             />
           ) : (
-            <Music2 className="w-7 h-7 text-white/30 animate-pulse" />
+            <Music2 className="w-8 h-8 text-white/30 animate-pulse pointer-events-none" />
           )}
 
           {/* Vinyl center pin */}
@@ -143,7 +145,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
         {/* Static Controls Overlay: Stays upright even when vinyl spins! */}
         {controlsMode !== "none" && (
           <div
-            className={`absolute inset-0 z-20 bg-black/60 transition-opacity duration-200 flex items-center justify-center gap-1 backdrop-blur-sm ${shapeClasses.inner} ${
+            className={`absolute inset-0 z-20 bg-black/75 transition-opacity duration-200 flex items-center justify-center gap-1.5 px-1 backdrop-blur-md ${shapeClasses.inner} ${
               controlsMode === "always" ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             }`}
           >
@@ -153,10 +155,10 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
                 e.stopPropagation();
                 onPrev();
               }}
-              className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition active:scale-90"
+              className="p-1 rounded-full text-white/90 hover:text-white hover:bg-white/20 hover:scale-110 transition active:scale-90 shrink-0"
               title="Poprzedni"
             >
-              <SkipBack className="w-3.5 h-3.5" />
+              <SkipBack className="w-4 h-4 fill-current drop-shadow-sm" />
             </button>
 
             <button
@@ -166,7 +168,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
                 onTogglePlay();
               }}
               style={{ backgroundColor: "var(--accent-color)" }}
-              className="p-1.5 rounded-full text-black hover:scale-110 active:scale-95 transition shadow-lg"
+              className="p-1.5 rounded-full text-black hover:scale-110 active:scale-95 transition shadow-lg shrink-0"
               title={isPlaying ? "Wstrzymaj" : "Odtwórz"}
             >
               {isPlaying ? (
@@ -182,10 +184,10 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
                 e.stopPropagation();
                 onNext();
               }}
-              className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition active:scale-90"
+              className="p-1 rounded-full text-white/90 hover:text-white hover:bg-white/20 hover:scale-110 transition active:scale-90 shrink-0"
               title="Następny"
             >
-              <SkipForward className="w-3.5 h-3.5" />
+              <SkipForward className="w-4 h-4 fill-current drop-shadow-sm" />
             </button>
           </div>
         )}

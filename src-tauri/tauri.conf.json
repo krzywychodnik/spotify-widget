@@ -15,15 +15,15 @@
       {
         "title": "Spotify Widget",
         "label": "main",
-        "width": 92,
-        "height": 92,
+        "width": 104,
+        "height": 104,
         "minWidth": 80,
         "minHeight": 80,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,
         "shadow": false,
-        "resizable": true,
+        "resizable": false,
         "skipTaskbar": false
       }
     ],

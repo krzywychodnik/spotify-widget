@@ -334,7 +334,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               <img
                 src={albumArt}
                 alt={currentTrack.name}
-                className="w-7 h-7 rounded-md object-cover shadow-sm shrink-0"
+                draggable={false}
+                onDragStart={(e) => e.preventDefault()}
+                className="w-7 h-7 rounded-md object-cover shadow-sm shrink-0 select-none pointer-events-none"
               />
               <div className="overflow-hidden">
                 <p className="text-[11px] font-semibold truncate text-white">
@@ -399,7 +401,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                   <img
                     src={albumArt}
                     alt={currentTrack.name}
-                    className={`w-full h-full object-cover transition-transform duration-700 ${
+                    draggable={false}
+                    onDragStart={(e) => e.preventDefault()}
+                    className={`w-full h-full object-cover select-none pointer-events-none transition-transform duration-700 ${
                       !isVinyl ? "group-hover/art:scale-105" : ""
                     }`}
                   />

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { AppCustomization, CollapseDirection } from "../types";
 import { DEFAULT_CUSTOMIZATION } from "./useCustomization";
 
-export const COLLAPSED_SIZE = { width: 92, height: 92 };
+export const COLLAPSED_SIZE = { width: 104, height: 104 };
 export const DEFAULT_EXPANDED_SIZE = { width: 380, height: 560 };
 export const EXPANDED_SIZE = DEFAULT_EXPANDED_SIZE;
 

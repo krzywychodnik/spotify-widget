@@ -35,19 +35,23 @@ fn resize_widget(
             y: cur_pos.y + delta_px_y,
         };
 
-        // If shrinking (collapse), resize FIRST to avoid screen edge clamping, then position.
-        // If expanding, move position FIRST to make room on screen, then resize.
+        // If shrinking (collapse), lock resizing and resize FIRST to avoid screen edge clamping, then position.
+        // If expanding, move position FIRST to make room on screen, then resize and unlock resizing.
         let is_collapsing = width < 200.0;
         if is_collapsing {
+            let _ = window.set_resizable(false);
             let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
             let _ = window.set_position(Position::Physical(new_pos));
             return Ok(());
         } else {
             let _ = window.set_position(Position::Physical(new_pos));
             let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+            let _ = window.set_resizable(true);
             return Ok(());
         }
     }
+    let is_collapsing = width < 200.0;
+    let _ = window.set_resizable(!is_collapsing);
     let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
     Ok(())
 }
