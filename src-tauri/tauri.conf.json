@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Spotify Widget",
+  "productName": "Music Overlay",
   "version": "0.1.0",
-  "identifier": "com.spotify.miniplayer",
+  "identifier": "com.music.overlay",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:5173",
@@ -13,7 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "Spotify Widget",
+        "title": "Music Overlay",
         "label": "main",
         "width": 104,
         "height": 104,

@@ -202,7 +202,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             data-tauri-drag-region
             className="text-[11px] font-semibold tracking-wider uppercase text-white/60"
           >
-            Spotify Overlay
+            Music Overlay
           </span>
 
           {/* Animated EQ Visualizer */}
