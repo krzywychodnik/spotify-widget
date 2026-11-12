@@ -36,23 +36,40 @@ fn resize_widget(
         };
 
         // If shrinking (collapse), lock resizing and resize FIRST to avoid screen edge clamping, then position.
-        // If expanding, move position FIRST to make room on screen, then resize and unlock resizing.
+        // If expanding, move position FIRST to make room on screen, then resize and unlock resizing with min size.
         let is_collapsing = width < 200.0;
         if is_collapsing {
             let _ = window.set_resizable(false);
+            let _ = window.set_min_size(None::<Size>);
             let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
             let _ = window.set_position(Position::Physical(new_pos));
             return Ok(());
         } else {
+            let min_w = 340.0;
+            let min_h = 520.0;
+            let exp_w = width.max(min_w);
+            let exp_h = height.max(min_h);
             let _ = window.set_position(Position::Physical(new_pos));
-            let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+            let _ = window.set_size(Size::Logical(LogicalSize { width: exp_w, height: exp_h }));
+            let _ = window.set_min_size(Some(Size::Logical(LogicalSize { width: min_w, height: min_h })));
             let _ = window.set_resizable(true);
             return Ok(());
         }
     }
     let is_collapsing = width < 200.0;
-    let _ = window.set_resizable(!is_collapsing);
-    let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+    if is_collapsing {
+        let _ = window.set_resizable(false);
+        let _ = window.set_min_size(None::<Size>);
+        let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+    } else {
+        let min_w = 340.0;
+        let min_h = 520.0;
+        let exp_w = width.max(min_w);
+        let exp_h = height.max(min_h);
+        let _ = window.set_size(Size::Logical(LogicalSize { width: exp_w, height: exp_h }));
+        let _ = window.set_min_size(Some(Size::Logical(LogicalSize { width: min_w, height: min_h })));
+        let _ = window.set_resizable(true);
+    }
     Ok(())
 }
 

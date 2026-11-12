@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --accent-color: #1DB954;
-    --accent-glow: rgba(29, 185, 84, 0.4);
+    --accent-color: #6F4A16;
+    --accent-glow: rgba(111, 74, 22, 0.4);
     --anim-duration: 420ms;
     --bg-blur: 36px;
     --bg-opacity: 0.88;

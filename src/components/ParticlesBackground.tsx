@@ -47,7 +47,7 @@ export const ParticlesBackground: React.FC<ParticlesBackgroundProps> = ({
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
-      const accent = accentColor || "#1DB954";
+      const accent = accentColor || "#6F4A16";
 
       particles.forEach((p) => {
         p.x += p.vx * (isPlaying ? 1.5 : 1);
