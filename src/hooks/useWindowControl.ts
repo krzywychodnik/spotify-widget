@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
-const COLLAPSED_SIZE = { width: 92, height: 92 };
-const EXPANDED_SIZE = { width: 380, height: 560 };
+export const COLLAPSED_SIZE = { width: 92, height: 92 };
+export const EXPANDED_SIZE = { width: 380, height: 560 };
 const DEBOUNCE_MS = 380;
 
 export function useWindowControl() {
@@ -11,16 +11,17 @@ export function useWindowControl() {
   });
 
   const leaveTimeoutRef = useRef<number | null>(null);
+  const isExpandedRef = useRef<boolean>(false);
 
-  // Resize native Tauri window if running in Tauri
+  // Resize native Tauri window if running in Tauri with exact deltaX
   const resizeNativeWindow = useCallback(
-    async (width: number, height: number, anchorTopRight: boolean = false) => {
+    async (width: number, height: number, deltaX: number = 0) => {
       try {
         const { invoke } = await import("@tauri-apps/api/core");
         await invoke("resize_widget", {
           width,
           height,
-          anchorTopRight,
+          deltaX,
         });
       } catch {
         try {
@@ -40,14 +41,26 @@ export function useWindowControl() {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
     }
+    if (isExpandedRef.current) return;
+
+    isExpandedRef.current = true;
     setIsExpanded(true);
-    resizeNativeWindow(EXPANDED_SIZE.width, EXPANDED_SIZE.height, true);
+
+    // Expand towards the bottom-left by shifting X to the left by the width difference
+    const deltaX = -(EXPANDED_SIZE.width - COLLAPSED_SIZE.width); // -288px
+    resizeNativeWindow(EXPANDED_SIZE.width, EXPANDED_SIZE.height, deltaX);
   }, [resizeNativeWindow]);
 
   const collapse = useCallback(() => {
     if (isPinned) return; // Ignore collapse if pinned
+    if (!isExpandedRef.current) return;
+
+    isExpandedRef.current = false;
     setIsExpanded(false);
-    resizeNativeWindow(COLLAPSED_SIZE.width, COLLAPSED_SIZE.height, true);
+
+    // Collapse into the top-right corner by shifting X to the right by the width difference
+    const deltaX = EXPANDED_SIZE.width - COLLAPSED_SIZE.width; // +288px
+    resizeNativeWindow(COLLAPSED_SIZE.width, COLLAPSED_SIZE.height, deltaX);
   }, [isPinned, resizeNativeWindow]);
 
   const handleMouseEnter = useCallback(() => {
@@ -55,10 +68,10 @@ export function useWindowControl() {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
     }
-    if (!isExpanded) {
+    if (!isExpandedRef.current) {
       expand();
     }
-  }, [isExpanded, expand]);
+  }, [expand]);
 
   const handleMouseLeave = useCallback(() => {
     if (isPinned) return; // Do not collapse if pinned
@@ -72,24 +85,26 @@ export function useWindowControl() {
   }, [isPinned, collapse]);
 
   const togglePin = useCallback(() => {
-    setIsPinned(prev => {
+    setIsPinned((prev) => {
       const next = !prev;
       localStorage.setItem("widget_pinned", String(next));
-      if (next && !isExpanded) {
+      if (next && !isExpandedRef.current) {
         expand();
       }
       return next;
     });
-  }, [isExpanded, expand]);
+  }, [expand]);
 
   // Initial window size
   useEffect(() => {
     if (isPinned) {
+      isExpandedRef.current = true;
       setIsExpanded(true);
-      resizeNativeWindow(EXPANDED_SIZE.width, EXPANDED_SIZE.height);
+      resizeNativeWindow(EXPANDED_SIZE.width, EXPANDED_SIZE.height, 0);
     } else {
+      isExpandedRef.current = false;
       setIsExpanded(false);
-      resizeNativeWindow(COLLAPSED_SIZE.width, COLLAPSED_SIZE.height);
+      resizeNativeWindow(COLLAPSED_SIZE.width, COLLAPSED_SIZE.height, 0);
     }
   }, [isPinned, resizeNativeWindow]);
 

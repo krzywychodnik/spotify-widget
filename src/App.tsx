@@ -94,7 +94,7 @@ export const App: React.FC = () => {
       className="relative w-full h-full flex items-center justify-center p-1 overflow-hidden"
     >
       {isExpanded ? (
-        <div className="w-full h-full animate-fadeIn transition-all duration-300">
+        <div className="w-full h-full animate-expand-spring">
           <ExpandedPlayer
             currentTrack={currentTrack}
             isPlaying={isPlaying}
