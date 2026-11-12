@@ -29,14 +29,15 @@ export function useSpotifyAuth() {
   }, []);
 
   const login = useCallback(async () => {
-    if (!clientId.trim()) {
+    const activeId = clientId.trim() || getStoredClientId();
+    if (!activeId) {
       setAuthError("Wprowadź Spotify Client ID przed logowaniem.");
       return;
     }
     setIsLoading(true);
     setAuthError(null);
     try {
-      const authUrl = await initiateSpotifyLogin(clientId.trim());
+      const authUrl = await initiateSpotifyLogin(activeId);
       // Try Tauri opener if running inside Tauri, else window.open / location
       try {
         const { openUrl } = await import("@tauri-apps/plugin-opener");
@@ -56,7 +57,8 @@ export function useSpotifyAuth() {
       setIsLoading(true);
       setAuthError(null);
       try {
-        const newTokens = await handleAuthCallback(code, state, clientId);
+        const activeId = clientId.trim() || getStoredClientId();
+        const newTokens = await handleAuthCallback(code, state, activeId);
         setTokens(newTokens);
       } catch (err: unknown) {
         setAuthError(err instanceof Error ? err.message : "Błąd autoryzacji");

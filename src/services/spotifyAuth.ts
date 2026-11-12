@@ -166,8 +166,10 @@ export function clearTokens(): void {
   localStorage.removeItem(STORAGE_KEYS.TOKENS);
 }
 
+export const DEFAULT_CLIENT_ID = "72bf5b601c7543ac8fa36a3dbcd02ada";
+
 export function getStoredClientId(): string {
-  return localStorage.getItem(STORAGE_KEYS.CLIENT_ID) || import.meta.env.VITE_SPOTIFY_CLIENT_ID || "";
+  return localStorage.getItem(STORAGE_KEYS.CLIENT_ID) || import.meta.env.VITE_SPOTIFY_CLIENT_ID || DEFAULT_CLIENT_ID;
 }
 
 export function saveStoredClientId(id: string): void {
