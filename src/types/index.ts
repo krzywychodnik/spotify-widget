@@ -43,9 +43,9 @@ export interface SpotifyPlaylist {
   name: string;
   description: string;
   images: SpotifyAlbumImage[];
-  tracks: { total: number };
+  tracks?: { total?: number; href?: string };
   uri: string;
-  owner: { display_name: string };
+  owner?: { id?: string; display_name?: string };
 }
 
 export interface SpotifyPlaybackState {

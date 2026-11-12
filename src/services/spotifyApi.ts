@@ -112,6 +112,19 @@ export async function spotifySetRepeat(state: "off" | "track" | "context"): Prom
   await spotifyRequest(`/me/player/repeat?state=${state}`, "PUT");
 }
 
+export interface SpotifyUserProfile {
+  id: string;
+  display_name?: string;
+}
+
+export async function fetchCurrentUser(): Promise<SpotifyUserProfile | null> {
+  try {
+    return await spotifyRequest<SpotifyUserProfile>("/me");
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchUserPlaylists(limit: number = 50): Promise<SpotifyPlaylist[]> {
   const data = await spotifyRequest<{ items: SpotifyPlaylist[] }>(`/me/playlists?limit=${limit}`);
   return data?.items || [];
