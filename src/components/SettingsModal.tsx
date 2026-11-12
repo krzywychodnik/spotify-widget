@@ -412,35 +412,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
 
               {/* Accent Color */}
-              <div className="space-y-2">
+              <div className="space-y-2.5 bg-black/25 p-2.5 rounded-xl border border-white/5">
                 <div className="flex justify-between items-center">
-                  <label className="text-[11px] font-semibold text-white/80">
-                    {t.settings.accentColor.title}
-                  </label>
-                  <span className="text-[10px] font-mono text-white/40 uppercase">
+                  <div className="flex items-center gap-1.5">
+                    <Palette className="w-3.5 h-3.5" style={{ color: "var(--accent-color)" }} />
+                    <label className="text-[11px] font-bold text-white tracking-wide">
+                      {t.settings.accentColor.title}
+                    </label>
+                  </div>
+                  <span className="text-[10px] font-mono text-white/60 bg-white/5 border border-white/10 px-2 py-0.5 rounded uppercase font-semibold">
                     {customization.accentColor}
                   </span>
                 </div>
 
-                {/* Swatches */}
-                <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                {/* Swatches - perfectly aligned row */}
+                <div className="flex items-center justify-between gap-1 px-0.5 pt-0.5">
                   {COLOR_PRESETS.map((preset) => {
                     const isFav = Boolean((preset as any).isAuthorFav);
                     const isSelected =
                       customization.accentColor.toLowerCase() === preset.color.toLowerCase();
 
                     return (
-                      <div key={preset.color} className="relative group/color flex items-center">
+                      <div key={preset.color} className="w-7 h-7 flex items-center justify-center">
                         <button
                           type="button"
                           onClick={() => onUpdateCustomization({ accentColor: preset.color })}
-                          className={`w-6 h-6 rounded-full transition-all border flex items-center justify-center relative ${
-                            isFav
-                              ? "border-amber-400/90 ring-1 ring-amber-400/40"
-                              : "border-white/20"
+                          className={`w-6 h-6 rounded-full transition-all flex items-center justify-center relative ${
+                            isFav ? "border border-amber-400/80" : "border border-white/20"
                           } ${
                             isSelected
-                              ? "scale-125 ring-2 ring-white/70 shadow-lg"
+                              ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-950 scale-105 shadow-md"
                               : "hover:scale-110 opacity-80 hover:opacity-100"
                           }`}
                           style={{ backgroundColor: preset.color }}
@@ -449,35 +450,42 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           {isSelected && (
                             <Check className="w-3 h-3 text-white stroke-[3] drop-shadow" />
                           )}
+                          {isFav && !isSelected && (
+                            <Star className="w-2 h-2 text-amber-300 fill-amber-300 absolute -top-0.5 -right-0.5 drop-shadow" />
+                          )}
                         </button>
                       </div>
                     );
                   })}
 
                   {/* Custom color picker */}
-                  <label
-                    className="w-6 h-6 rounded-full border border-white/30 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-110 transition bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500"
-                    title={t.settings.accentColor.customColor}
-                  >
-                    <input
-                      type="color"
-                      value={customization.accentColor}
-                      onChange={(e) => onUpdateCustomization({ accentColor: e.target.value })}
-                      className="opacity-0 w-0 h-0 cursor-pointer"
-                    />
-                  </label>
+                  <div className="w-7 h-7 flex items-center justify-center">
+                    <label
+                      className="w-6 h-6 rounded-full border border-white/30 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-110 transition bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500"
+                      title={t.settings.accentColor.customColor}
+                    >
+                      <input
+                        type="color"
+                        value={customization.accentColor}
+                        onChange={(e) => onUpdateCustomization({ accentColor: e.target.value })}
+                        className="opacity-0 w-0 h-0 cursor-pointer"
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 {/* Subtitle / badge info for active color */}
                 {customization.accentColor.toLowerCase() === "#6f4a16" ? (
-                  <div className="flex items-center gap-1.5 text-[10px] text-amber-300/90 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg">
+                  <div className="flex items-center gap-1.5 text-[10px] text-amber-300/90 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1.5 rounded-lg">
                     <Star className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
                     <span>{t.settings.presets.authorFavNotice}</span>
                   </div>
                 ) : (
-                  <div className="text-[10px] text-white/50 px-0.5">
-                    {t.settings.accentColor.activeColor}:{" "}
-                    <span className="text-white font-mono">{customization.accentColor}</span>
+                  <div className="text-[10px] text-white/50 px-1 pt-0.5 flex items-center justify-between">
+                    <span>
+                      {t.settings.accentColor.activeColor}:{" "}
+                      <span className="text-white font-mono font-semibold">{customization.accentColor}</span>
+                    </span>
                   </div>
                 )}
               </div>
