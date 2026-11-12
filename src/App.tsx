@@ -55,6 +55,8 @@ export const App: React.FC = () => {
     togglePin,
     handleMouseEnter,
     handleMouseLeave,
+    expand,
+    collapse,
     closeApp,
   } = useWindowControl(customization, isSettingsOpen);
 
@@ -130,6 +132,7 @@ export const App: React.FC = () => {
             onToggleRepeat={toggleRepeat}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onCloseApp={closeApp}
+            onCollapse={collapse}
             lyrics={lyrics}
             activeLineIndex={activeLineIndex}
             isLyricsLoading={isLyricsLoading}
@@ -147,8 +150,8 @@ export const App: React.FC = () => {
             onTogglePlay={togglePlayPause}
             onNext={nextTrack}
             onPrev={prevTrack}
+            onExpand={expand}
             progressPercent={progressPercent}
-            collapsedShape={customization.collapsedShape}
             customization={customization}
           />
         </div>

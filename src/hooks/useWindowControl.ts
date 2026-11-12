@@ -51,7 +51,6 @@ export function useWindowControl(
   const preventCollapseRef = useRef(preventCollapse);
   useEffect(() => {
     preventCollapseRef.current = preventCollapse;
-    // If settings or modal just opened, cancel any pending collapse
     if (preventCollapse && leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
       leaveTimeoutRef.current = null;
@@ -147,14 +146,21 @@ export function useWindowControl(
       collapseAnimTimeoutRef.current = null;
       setIsCollapsing(false);
     }
-    if (!isExpandedRef.current) {
-      expand();
+
+    // Only auto-expand on hover if expandTrigger is 'hover'!
+    if (customizationRef.current.expandTrigger !== "click") {
+      if (!isExpandedRef.current) {
+        expand();
+      }
     }
   }, [expand]);
 
   const handleMouseLeave = useCallback(() => {
     // If pinned or settings panel is open, do NOT initiate collapse
     if (isPinned || preventCollapseRef.current) return;
+
+    // If trigger is 'click', do NOT auto-collapse on hover leave! User wants click control.
+    if (customizationRef.current.expandTrigger === "click") return;
 
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);

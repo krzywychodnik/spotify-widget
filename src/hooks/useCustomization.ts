@@ -2,37 +2,33 @@ import { useState, useEffect, useCallback } from "react";
 import { AppCustomization } from "../types";
 
 export const DEFAULT_CUSTOMIZATION: AppCustomization = {
+  // Positioning & Interaction
   collapseDirection: "top-right",
   collapseDelayMs: 450,
+  expandTrigger: "hover",
+  
+  // Animation
   animationType: "spring",
   animationSpeedMs: 420,
   
-  // Background & Media
-  bgType: "preset",
+  // Appearance & Colors
+  accentColor: "#1DB954",
   bgTheme: "glass",
-  customBgUrl: "",
-  customBgDim: 50,
-  customBgBlur: 4,
   bgBlur: 36,
   bgOpacity: 88,
-  borderStyle: "glow",
   collapsedShape: "rounded-square",
   
-  // Colors & Accent
-  accentColor: "#1DB954",
+  // Collapsed Widget
+  collapsedControls: "hover",
+  collapsedProgressStyle: "radial",
   
-  // Music & Album Art
+  // Player & Effects
   albumArtSpin: false,
   albumArtGlow: true,
-  albumArtRadius: "rounded",
   showVisualizer: true,
-  
-  // Typography
-  fontFamily: "sans",
   
   // Lyrics
   lyricsFontSize: "medium",
-  lyricsAlign: "left",
   lyricsGlow: true,
   activeLyricStyle: "spotify-glow",
 };
@@ -58,17 +54,7 @@ export function useCustomization() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch (e) {
-        // If quota exceeded (e.g. large file upload), preserve other settings by omitting heavy data url
-        try {
-          const safeCopy = {
-            ...next,
-            customBgUrl: next.customBgUrl?.startsWith("data:") ? "" : next.customBgUrl,
-          };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(safeCopy));
-        } catch {
-          // ignore
-        }
-        console.warn("Storage quota exceeded, preserving in memory:", e);
+        console.warn("Failed to save customization to localStorage", e);
       }
       return next;
     });
@@ -93,22 +79,11 @@ export function useCustomization() {
     root.style.setProperty("--bg-blur", `${customization.bgBlur}px`);
     root.style.setProperty("--bg-opacity", `${customization.bgOpacity / 100}`);
 
-    // Font family mapping
-    if (customization.fontFamily === "mono") {
-      root.style.fontFamily = 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
-    } else if (customization.fontFamily === "display") {
-      root.style.fontFamily = '"Outfit", "Cabinet Grotesk", system-ui, sans-serif';
-    } else {
-      root.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    }
-
     // Set dataset attributes for theme and collapse direction styling
     root.dataset.theme = customization.bgTheme;
-    root.dataset.bgType = customization.bgType;
     root.dataset.direction = customization.collapseDirection;
     root.dataset.anim = customization.animationType;
     root.dataset.shape = customization.collapsedShape;
-    root.dataset.border = customization.borderStyle;
   }, [customization]);
 
   return {

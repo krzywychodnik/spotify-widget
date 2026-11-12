@@ -16,10 +16,10 @@ import {
   Disc3,
   GripHorizontal,
   X,
+  ChevronDown,
 } from "lucide-react";
 import { SpotifyTrack, LyricLine, AppCustomization } from "../types";
 import { LyricsView } from "./LyricsView";
-import { DynamicBackground } from "./DynamicBackground";
 
 interface ExpandedPlayerProps {
   currentTrack: SpotifyTrack | null;
@@ -40,6 +40,7 @@ interface ExpandedPlayerProps {
   onToggleRepeat: () => void;
   onOpenSettings: () => void;
   onCloseApp: () => void;
+  onCollapse: () => void;
   lyrics: LyricLine[];
   activeLineIndex: number;
   isLyricsLoading: boolean;
@@ -76,6 +77,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   onToggleRepeat,
   onOpenSettings,
   onCloseApp,
+  onCollapse,
   lyrics,
   activeLineIndex,
   isLyricsLoading,
@@ -89,7 +91,10 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   const [prevVolume, setPrevVolume] = useState(volume);
 
   const albumArt = currentTrack?.album?.images?.[0]?.url;
-  const progressPercent = durationMs > 0 ? (progressMs / durationMs) * 100 : 0;
+
+  // Perfectly synchronized progress percentage (0 - 100)
+  const clampedPercent =
+    durationMs > 0 ? Math.min(100, Math.max(0, (progressMs / durationMs) * 100)) : 0;
 
   const handleSeekClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (durationMs <= 0) return;
@@ -113,14 +118,13 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   const isVinyl = !!customization?.albumArtSpin;
 
   const getAlbumArtRadius = () => {
-    // When vinyl spin is enabled, ALWAYS make it a circle!
     if (isVinyl) return "rounded-full";
-    switch (customization?.albumArtRadius) {
+    switch (customization?.collapsedShape) {
       case "circle":
         return "rounded-full";
-      case "normal":
-        return "rounded-xl";
-      case "rounded":
+      case "capsule":
+        return "rounded-[24px]";
+      case "rounded-square":
       default:
         return "rounded-2xl";
     }
@@ -128,11 +132,6 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
 
   return (
     <div className="relative w-full h-full glass-panel rounded-3xl flex flex-col overflow-hidden text-white select-none transition-all duration-300 shadow-2xl">
-      {/* Dynamic Custom Background Layer (image, video, gif, aurora, particles, mesh) */}
-      {customization && (
-        <DynamicBackground customization={customization} isPlaying={isPlaying} />
-      )}
-
       {/* Draggable Header */}
       <div
         data-tauri-drag-region
@@ -147,7 +146,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             Spotify Overlay
           </span>
 
-          {/* Simulated Animated EQ Visualizer */}
+          {/* Animated EQ Visualizer */}
           {customization?.showVisualizer && isPlaying && (
             <div className="flex items-end gap-0.5 h-3.5 px-1.5 opacity-80">
               <span className="w-0.5 rounded-full bg-[var(--accent-color)] eq-bar-1" />
@@ -191,6 +190,15 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             </button>
           </div>
 
+          {/* Minimize / Collapse Button (Click to collapse) */}
+          <button
+            onClick={onCollapse}
+            className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition"
+            title="Zwiń widget"
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
+          </button>
+
           {/* Pin toggle button */}
           <button
             onClick={onTogglePin}
@@ -200,7 +208,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 : "text-white/40 hover:text-white hover:bg-white/10"
             }`}
             style={isPinned ? { color: "var(--accent-color)" } : {}}
-            title={isPinned ? "Przypięte (nie zwinie się)" : "Przypnij okno (zawsze rozwinięte)"}
+            title={isPinned ? "Przypięte (nie zwinie się)" : "Przypnij okno"}
           >
             <Pin className={`w-3.5 h-3.5 ${isPinned ? "rotate-45" : ""}`} />
           </button>
@@ -209,7 +217,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           <button
             onClick={onOpenSettings}
             className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition"
-            title="Personalizacja i Ustawienia"
+            title="Ustawienia"
           >
             <Settings className="w-3.5 h-3.5" />
           </button>
@@ -218,7 +226,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           <button
             onClick={onCloseApp}
             className="p-1.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/15 transition active:scale-95"
-            title="Zamknij widget"
+            title="Zamknij"
           >
             <X className="w-3.5 h-3.5" />
           </button>
@@ -317,7 +325,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                   className="absolute inset-0 blur-2xl opacity-45 rounded-full transition-all duration-700 pointer-events-none"
                   style={{
                     backgroundColor: "var(--accent-color)",
-                    transform: isPlaying ? "scale(1.25)" : "scale(0.9)",
+                    transform: isPlaying ? "scale(1.2)" : "scale(0.9)",
                   }}
                 />
               )}
@@ -346,7 +354,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                   </div>
                 )}
 
-                {/* Vinyl Grooves & Concentric Reflection Effect */}
+                {/* Vinyl Grooves & Reflection Effect */}
                 {isVinyl && (
                   <div
                     className="absolute inset-0 rounded-full pointer-events-none border border-white/10"
@@ -357,7 +365,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                   />
                 )}
 
-                {/* Center vinyl spindle dot if spin is active */}
+                {/* Center vinyl spindle dot */}
                 {isVinyl && (
                   <div className="absolute inset-0 m-auto w-7 h-7 rounded-full bg-zinc-950 border-2 border-zinc-700/80 shadow-[0_0_10px_rgba(0,0,0,0.8)] flex items-center justify-center pointer-events-none">
                     <div className="w-2 h-2 rounded-full bg-zinc-300 shadow-sm" />
@@ -366,11 +374,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               </div>
             </div>
 
+            {/* Song title with NO tooltip attribute */}
             <div className="w-full max-w-[280px] space-y-1">
-              <h2
-                className="text-sm font-bold text-white truncate hover:whitespace-normal transition-all"
-                title={currentTrack.name}
-              >
+              <h2 className="text-sm font-bold text-white truncate hover:whitespace-normal transition-all">
                 {currentTrack.name}
               </h2>
               <p className="text-xs text-white/60 truncate">
@@ -379,25 +385,29 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             </div>
           </div>
 
-          {/* Seekbar */}
+          {/* Synchronized Seekbar & Scrub Thumb */}
           <div className="space-y-1 mt-2">
             <div
               onClick={handleSeekClick}
-              className="group/seek relative w-full h-3 flex items-center cursor-pointer select-none"
+              className="group/seek relative w-full h-4 flex items-center cursor-pointer select-none"
             >
               <div className="w-full h-1 bg-white/15 rounded-full overflow-hidden group-hover/seek:h-1.5 transition-all">
                 <div
-                  className="h-full rounded-full transition-all duration-150"
+                  className="h-full rounded-full"
                   style={{
                     backgroundColor: "var(--accent-color)",
-                    width: `${Math.min(100, Math.max(0, progressPercent))}%`,
+                    width: `${clampedPercent}%`,
                   }}
                 />
               </div>
-              {/* Scrub thumb */}
+
+              {/* Scrub thumb perfectly synchronized with clampedPercent */}
               <div
-                className="absolute w-2.5 h-2.5 bg-white rounded-full shadow opacity-0 group-hover/seek:opacity-100 transition-opacity -ml-1 pointer-events-none"
-                style={{ left: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+                className="absolute w-2.5 h-2.5 bg-white rounded-full shadow opacity-0 group-hover/seek:opacity-100 transition-opacity pointer-events-none"
+                style={{
+                  left: `${clampedPercent}%`,
+                  transform: "translateX(-50%)",
+                }}
               />
             </div>
 
@@ -413,7 +423,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               onClick={onToggleShuffle}
               className="p-2 rounded-full transition relative"
               style={shuffleState ? { color: "var(--accent-color)" } : { color: "rgba(255,255,255,0.4)" }}
-              title="Losowo (Shuffle)"
+              title="Losowo"
             >
               <Shuffle className="w-4 h-4" />
               {shuffleState && (

@@ -82,55 +82,43 @@ export type AnimationType =
 
 export type BackgroundTheme = 'glass' | 'oled' | 'frosted' | 'gradient';
 
-export type BackgroundType =
-  | 'preset'
-  | 'image'
-  | 'video'
-  | 'aurora'
-  | 'particles'
-  | 'mesh';
-
 export type CollapsedShape = 'rounded-square' | 'circle' | 'capsule';
 
-export type BorderStyle = 'glow' | 'subtle' | 'none' | 'rainbow';
+export type ExpandTrigger = 'hover' | 'click';
 
-export type FontFamily = 'system' | 'sans' | 'mono' | 'display';
+export type CollapsedControlsMode = 'always' | 'hover' | 'none';
+
+export type CollapsedProgressStyle = 'radial' | 'bar' | 'none';
 
 export interface AppCustomization {
-  // Positioning & Window
+  // Positioning & Interaction
   collapseDirection: CollapseDirection;
   collapseDelayMs: number;
+  expandTrigger: ExpandTrigger;
   
   // Animation
   animationType: AnimationType;
   animationSpeedMs: number;
   
-  // Background & Media
-  bgType: BackgroundType;
+  // Appearance & Colors
+  accentColor: string;
   bgTheme: BackgroundTheme;
-  customBgUrl: string;       // image, gif, or video URL / local path
-  customBgDim: number;       // in % (0 - 90%)
-  customBgBlur: number;      // in px (0 - 40px)
-  bgBlur: number;            // in px (0 - 50px)
-  bgOpacity: number;         // in % (30 - 100%)
-  borderStyle: BorderStyle;
+  bgBlur: number;       // in px (0 - 50)
+  bgOpacity: number;    // in % (40 - 100)
   collapsedShape: CollapsedShape;
   
-  // Accent & Colors
-  accentColor: string;
+  // Collapsed Widget Customization
+  collapsedControls: CollapsedControlsMode;
+  collapsedProgressStyle: CollapsedProgressStyle;
   
-  // Album Art & Music
-  albumArtSpin: boolean;     // vinyl spin animation when playing
-  albumArtGlow: boolean;     // colorful ambient glow behind album
-  albumArtRadius: 'normal' | 'rounded' | 'circle';
-  showVisualizer: boolean;   // animated simulated EQ visualizer bars
-  
-  // Typography
-  fontFamily: FontFamily;
+  // Player & Effects
+  albumArtSpin: boolean;     // vinyl spin animation
+  albumArtGlow: boolean;     // ambient colorful glow behind album
+  showVisualizer: boolean;   // animated visualizer bars
   
   // Lyrics
   lyricsFontSize: 'small' | 'medium' | 'large';
-  lyricsAlign: 'left' | 'center';
+  lyricsAlign?: 'left' | 'center';
   lyricsGlow: boolean;
   activeLyricStyle: 'spotify-glow' | 'accent-gradient' | 'minimal-line';
 }
