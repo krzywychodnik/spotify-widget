@@ -3,11 +3,16 @@ import { AppCustomization, CollapseDirection } from "../types";
 import { DEFAULT_CUSTOMIZATION } from "./useCustomization";
 
 export const COLLAPSED_SIZE = { width: 92, height: 92 };
-export const EXPANDED_SIZE = { width: 380, height: 560 };
+export const DEFAULT_EXPANDED_SIZE = { width: 380, height: 560 };
+export const EXPANDED_SIZE = DEFAULT_EXPANDED_SIZE;
 
-function getCollapseDeltas(direction: CollapseDirection) {
-  const diffX = EXPANDED_SIZE.width - COLLAPSED_SIZE.width; // 288
-  const diffY = EXPANDED_SIZE.height - COLLAPSED_SIZE.height; // 468
+function getCollapseDeltas(
+  direction: CollapseDirection,
+  expWidth: number = DEFAULT_EXPANDED_SIZE.width,
+  expHeight: number = DEFAULT_EXPANDED_SIZE.height
+) {
+  const diffX = expWidth - COLLAPSED_SIZE.width;
+  const diffY = expHeight - COLLAPSED_SIZE.height;
 
   switch (direction) {
     case "top-right":
@@ -37,6 +42,43 @@ export function useWindowControl(
   const [isPinned, setIsPinned] = useState<boolean>(() => {
     return localStorage.getItem("widget_pinned") === "true";
   });
+
+  // Track dynamic user-resized dimensions
+  const [expandedDimensions, setExpandedDimensions] = useState<{ width: number; height: number }>(() => {
+    try {
+      const saved = localStorage.getItem("widget_expanded_size");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.width >= 200 && parsed.height >= 200) return parsed;
+      }
+    } catch {}
+    return DEFAULT_EXPANDED_SIZE;
+  });
+
+  const expandedDimensionsRef = useRef(expandedDimensions);
+  useEffect(() => {
+    expandedDimensionsRef.current = expandedDimensions;
+  }, [expandedDimensions]);
+
+  // Listen to window resize events so user resizing is tracked and remembered
+  useEffect(() => {
+    const handleWindowResize = () => {
+      if (isExpandedRef.current && !isCollapsing) {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        if (w >= 200 && h >= 200) {
+          const newSize = { width: w, height: h };
+          setExpandedDimensions(newSize);
+          try {
+            localStorage.setItem("widget_expanded_size", JSON.stringify(newSize));
+          } catch {}
+        }
+      }
+    };
+
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, [isCollapsing]);
 
   const leaveTimeoutRef = useRef<number | null>(null);
   const collapseAnimTimeoutRef = useRef<number | null>(null);
@@ -96,8 +138,13 @@ export function useWindowControl(
     if (isExpandedRef.current) return;
     isExpandedRef.current = true;
 
-    const deltas = getCollapseDeltas(customizationRef.current.collapseDirection);
-    resizeNativeWindow(EXPANDED_SIZE.width, EXPANDED_SIZE.height, deltas.expand.dx, deltas.expand.dy);
+    const targetSize = expandedDimensionsRef.current;
+    const deltas = getCollapseDeltas(
+      customizationRef.current.collapseDirection,
+      targetSize.width,
+      targetSize.height
+    );
+    resizeNativeWindow(targetSize.width, targetSize.height, deltas.expand.dx, deltas.expand.dy);
     setIsExpanded(true);
   }, [resizeNativeWindow]);
 
@@ -126,7 +173,12 @@ export function useWindowControl(
       setIsExpanded(false);
       setIsCollapsing(false);
 
-      const deltas = getCollapseDeltas(customizationRef.current.collapseDirection);
+      const targetSize = expandedDimensionsRef.current;
+      const deltas = getCollapseDeltas(
+        customizationRef.current.collapseDirection,
+        targetSize.width,
+        targetSize.height
+      );
       resizeNativeWindow(
         COLLAPSED_SIZE.width,
         COLLAPSED_SIZE.height,
@@ -189,7 +241,8 @@ export function useWindowControl(
     if (initiallyPinned) {
       isExpandedRef.current = true;
       setIsExpanded(true);
-      resizeNativeWindow(EXPANDED_SIZE.width, EXPANDED_SIZE.height, 0, 0);
+      const targetSize = expandedDimensionsRef.current;
+      resizeNativeWindow(targetSize.width, targetSize.height, 0, 0);
     } else {
       isExpandedRef.current = false;
       setIsExpanded(false);

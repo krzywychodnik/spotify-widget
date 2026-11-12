@@ -370,17 +370,17 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
         </div>
       ) : (
         /* Player View */
-        <div className="flex-1 flex flex-col justify-between p-5 overflow-hidden z-10">
+        <div className="flex-1 min-h-0 flex flex-col justify-between p-3.5 sm:p-5 overflow-hidden z-10">
           {/* Album Artwork & Info */}
-          <div className="flex flex-col items-center text-center gap-3 mt-1">
-            <div className="relative group/art w-44 h-44 flex items-center justify-center">
+          <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-center gap-2 sm:gap-3 my-auto">
+            <div className="relative group/art w-auto h-auto max-w-[210px] max-h-[36vh] min-w-[80px] min-h-[80px] aspect-square flex items-center justify-center my-auto shrink-1">
               {/* Optional ambient colorful glow behind album art */}
               {customization?.albumArtGlow && (
                 <div
                   className="absolute inset-0 blur-2xl opacity-45 rounded-full transition-all duration-700 pointer-events-none"
                   style={{
                     backgroundColor: "var(--accent-color)",
-                    transform: isPlaying ? "scale(1.2)" : "scale(0.9)",
+                    transform: isPlaying ? "scale(1.15)" : "scale(0.9)",
                   }}
                 />
               )}
@@ -430,18 +430,18 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             </div>
 
             {/* Song title with NO tooltip attribute */}
-            <div className="w-full max-w-[280px] space-y-1">
-              <h2 className="text-sm font-bold text-white truncate hover:whitespace-normal transition-all">
+            <div className="w-full max-w-[92%] px-2 space-y-0.5 sm:space-y-1 shrink-0">
+              <h2 className="text-xs sm:text-sm font-bold text-white truncate hover:whitespace-normal transition-all">
                 {currentTrack.name}
               </h2>
-              <p className="text-xs text-white/60 truncate">
+              <p className="text-[11px] sm:text-xs text-white/60 truncate">
                 {currentTrack.artists.map((a) => a.name).join(", ")}
               </p>
             </div>
           </div>
 
           {/* Synchronized Seekbar & Scrub Thumb */}
-          <div className="space-y-1 mt-2">
+          <div className="space-y-1 mt-2 shrink-0">
             <div
               onClick={handleSeekClick}
               className="group/seek relative w-full h-4 flex items-center cursor-pointer select-none"
@@ -473,14 +473,14 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           </div>
 
           {/* Primary Controls */}
-          <div className="flex items-center justify-center gap-4 my-1">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 my-1 shrink-0">
             <button
               onClick={onToggleShuffle}
-              className="p-2 rounded-full transition relative"
+              className="p-1.5 sm:p-2 rounded-full transition relative"
               style={shuffleState ? { color: "var(--accent-color)" } : { color: "rgba(255,255,255,0.4)" }}
               title="Losowo"
             >
-              <Shuffle className="w-4 h-4" />
+              <Shuffle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               {shuffleState && (
                 <span
                   className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
@@ -491,10 +491,10 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
 
             <button
               onClick={onPrev}
-              className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition active:scale-90"
+              className="p-1.5 sm:p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition active:scale-90"
               title="Poprzedni utwór"
             >
-              <SkipBack className="w-5 h-5 fill-current" />
+              <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
             </button>
 
             <button
@@ -503,22 +503,22 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 backgroundColor: "var(--accent-color)",
                 boxShadow: "0 10px 25px -5px var(--accent-glow)",
               }}
-              className="p-3.5 rounded-full text-black hover:scale-105 active:scale-95 transition shadow-lg"
+              className="p-2.5 sm:p-3.5 rounded-full text-black hover:scale-105 active:scale-95 transition shadow-lg"
               title={isPlaying ? "Wstrzymaj" : "Odtwórz"}
             >
               {isPlaying ? (
-                <Pause className="w-5 h-5 fill-current" />
+                <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
               ) : (
-                <Play className="w-5 h-5 fill-current ml-0.5" />
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" />
               )}
             </button>
 
             <button
               onClick={onNext}
-              className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition active:scale-90"
+              className="p-1.5 sm:p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition active:scale-90"
               title="Następny utwór"
             >
-              <SkipForward className="w-5 h-5 fill-current" />
+              <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
             </button>
 
             <button
