@@ -6,7 +6,7 @@ use std::net::TcpListener;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
-use tauri::{Emitter, Manager, Size, LogicalSize};
+use tauri::{Emitter, Manager, Size, LogicalSize, Position, PhysicalPosition};
 
 #[derive(Clone, serde::Serialize)]
 struct OAuthCallbackPayload {
@@ -15,10 +15,32 @@ struct OAuthCallbackPayload {
 }
 
 #[tauri::command]
-fn resize_widget(window: tauri::Window, width: f64, height: f64) -> Result<(), String> {
-    window
-        .set_size(Size::Logical(LogicalSize { width, height }))
-        .map_err(|e| e.to_string())
+fn resize_widget(
+    window: tauri::Window,
+    width: f64,
+    height: f64,
+    anchor_top_right: Option<bool>,
+) -> Result<(), String> {
+    if anchor_top_right.unwrap_or(false) {
+        let scale = window.scale_factor().unwrap_or(1.0);
+        let cur_pos = window.outer_position().map_err(|e| e.to_string())?;
+        let cur_size = window.outer_size().map_err(|e| e.to_string())?;
+
+        let cur_w_logical = cur_size.width as f64 / scale;
+        let delta_x_logical = cur_w_logical - width;
+        let delta_x_physical = (delta_x_logical * scale).round() as i32;
+
+        let new_pos = PhysicalPosition {
+            x: cur_pos.x + delta_x_physical,
+            y: cur_pos.y,
+        };
+
+        let _ = window.set_position(Position::Physical(new_pos));
+        let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+    } else {
+        let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+    }
+    Ok(())
 }
 
 #[tauri::command]

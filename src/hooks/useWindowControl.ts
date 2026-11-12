@@ -13,20 +13,27 @@ export function useWindowControl() {
   const leaveTimeoutRef = useRef<number | null>(null);
 
   // Resize native Tauri window if running in Tauri
-  const resizeNativeWindow = useCallback(async (width: number, height: number) => {
-    try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("resize_widget", { width, height });
-    } catch {
+  const resizeNativeWindow = useCallback(
+    async (width: number, height: number, anchorTopRight: boolean = false) => {
       try {
-        const { getCurrentWindow, LogicalSize } = await import("@tauri-apps/api/window");
-        const appWindow = getCurrentWindow();
-        await appWindow.setSize(new LogicalSize(width, height));
+        const { invoke } = await import("@tauri-apps/api/core");
+        await invoke("resize_widget", {
+          width,
+          height,
+          anchorTopRight,
+        });
       } catch {
-        // In regular browser dev mode, window resizing is not supported
+        try {
+          const { getCurrentWindow, LogicalSize } = await import("@tauri-apps/api/window");
+          const appWindow = getCurrentWindow();
+          await appWindow.setSize(new LogicalSize(width, height));
+        } catch {
+          // In regular browser dev mode, window resizing is not supported
+        }
       }
-    }
-  }, []);
+    },
+    []
+  );
 
   const expand = useCallback(() => {
     if (leaveTimeoutRef.current) {
@@ -34,13 +41,13 @@ export function useWindowControl() {
       leaveTimeoutRef.current = null;
     }
     setIsExpanded(true);
-    resizeNativeWindow(EXPANDED_SIZE.width, EXPANDED_SIZE.height);
+    resizeNativeWindow(EXPANDED_SIZE.width, EXPANDED_SIZE.height, true);
   }, [resizeNativeWindow]);
 
   const collapse = useCallback(() => {
     if (isPinned) return; // Ignore collapse if pinned
     setIsExpanded(false);
-    resizeNativeWindow(COLLAPSED_SIZE.width, COLLAPSED_SIZE.height);
+    resizeNativeWindow(COLLAPSED_SIZE.width, COLLAPSED_SIZE.height, true);
   }, [isPinned, resizeNativeWindow]);
 
   const handleMouseEnter = useCallback(() => {

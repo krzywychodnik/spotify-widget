@@ -23,12 +23,48 @@ export function useSpotifyPlayer(isAuthenticated: boolean) {
   const isPlayingRef = useRef<boolean>(false);
   const durationRef = useRef<number>(0);
 
+  // Seeking protection against stale Spotify API polling responses
+  const lastSeekTimestampRef = useRef<number>(0);
+  const expectedSeekPosRef = useRef<number>(0);
+
   // Sync state from Spotify API
   const refreshState = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
       const state = await fetchPlaybackState();
       if (state) {
+        const now = performance.now();
+        const elapsedSinceSeek = now - lastSeekTimestampRef.current;
+
+        // If a seek happened within the last 2500ms, prevent stale progress rollback
+        if (elapsedSinceSeek < 2500) {
+          const expectedProgress =
+            expectedSeekPosRef.current +
+            (isPlayingRef.current ? elapsedSinceSeek : 0);
+          const discrepancy = Math.abs((state.progress_ms || 0) - expectedProgress);
+
+          if (discrepancy > 2500) {
+            // Stale poll detected! Update metadata but keep the seeked progress
+            isPlayingRef.current = state.is_playing;
+            durationRef.current = state.item?.duration_ms || 0;
+            if (state.device) setVolume(state.device.volume_percent);
+            setPlaybackState((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    is_playing: state.is_playing,
+                    item: state.item,
+                    device: state.device,
+                    repeat_state: state.repeat_state,
+                    shuffle_state: state.shuffle_state,
+                  }
+                : state
+            );
+            return;
+          }
+        }
+
+        // Fresh synced response
         setPlaybackState(state);
         baseProgressRef.current = state.progress_ms || 0;
         lastSyncTimeRef.current = performance.now();
@@ -64,7 +100,10 @@ export function useSpotifyPlayer(isAuthenticated: boolean) {
     const tick = () => {
       if (isPlayingRef.current && durationRef.current > 0) {
         const elapsed = performance.now() - lastSyncTimeRef.current;
-        const current = Math.min(baseProgressRef.current + elapsed, durationRef.current);
+        const current = Math.min(
+          baseProgressRef.current + elapsed,
+          durationRef.current
+        );
         setSmoothProgressMs(current);
       }
       animId = requestAnimationFrame(tick);
@@ -78,9 +117,13 @@ export function useSpotifyPlayer(isAuthenticated: boolean) {
   const togglePlayPause = useCallback(async () => {
     if (!playbackState) return;
     const currentlyPlaying = playbackState.is_playing;
+
     // Optimistic update
     isPlayingRef.current = !currentlyPlaying;
-    setPlaybackState(prev => (prev ? { ...prev, is_playing: !currentlyPlaying } : null));
+    lastSyncTimeRef.current = performance.now();
+    setPlaybackState((prev) =>
+      prev ? { ...prev, is_playing: !currentlyPlaying } : null
+    );
 
     try {
       if (currentlyPlaying) {
@@ -88,7 +131,7 @@ export function useSpotifyPlayer(isAuthenticated: boolean) {
       } else {
         await spotifyPlay();
       }
-      setTimeout(refreshState, 300);
+      setTimeout(refreshState, 350);
     } catch (err) {
       console.error("Play/Pause failed:", err);
       refreshState();
@@ -121,17 +164,28 @@ export function useSpotifyPlayer(isAuthenticated: boolean) {
 
   const seek = useCallback(
     async (targetMs: number) => {
-      baseProgressRef.current = targetMs;
-      lastSyncTimeRef.current = performance.now();
-      setSmoothProgressMs(targetMs);
+      const now = performance.now();
+      const clamped = Math.max(
+        0,
+        Math.min(targetMs, durationRef.current || targetMs)
+      );
+
+      // Lock expected position to prevent stale poll rollbacks
+      lastSeekTimestampRef.current = now;
+      expectedSeekPosRef.current = clamped;
+      baseProgressRef.current = clamped;
+      lastSyncTimeRef.current = now;
+      setSmoothProgressMs(clamped);
 
       try {
-        await spotifySeek(targetMs);
+        await spotifySeek(clamped);
+        // Refresh with a short delay to verify
+        setTimeout(refreshState, 500);
       } catch (err) {
         console.error("Seek failed:", err);
       }
     },
-    []
+    [refreshState]
   );
 
   const changeVolume = useCallback(async (newVol: number) => {
@@ -146,7 +200,9 @@ export function useSpotifyPlayer(isAuthenticated: boolean) {
   const toggleShuffle = useCallback(async () => {
     if (!playbackState) return;
     const nextState = !playbackState.shuffle_state;
-    setPlaybackState(prev => (prev ? { ...prev, shuffle_state: nextState } : null));
+    setPlaybackState((prev) =>
+      prev ? { ...prev, shuffle_state: nextState } : null
+    );
     try {
       await spotifySetShuffle(nextState);
     } catch (err) {
@@ -160,7 +216,9 @@ export function useSpotifyPlayer(isAuthenticated: boolean) {
     const states: ("off" | "context" | "track")[] = ["off", "context", "track"];
     const currentIdx = states.indexOf(playbackState.repeat_state);
     const nextState = states[(currentIdx + 1) % states.length];
-    setPlaybackState(prev => (prev ? { ...prev, repeat_state: nextState } : null));
+    setPlaybackState((prev) =>
+      prev ? { ...prev, repeat_state: nextState } : null
+    );
     try {
       await spotifySetRepeat(nextState);
     } catch (err) {
