@@ -20,28 +20,32 @@ fn resize_widget(
     width: f64,
     height: f64,
     delta_x: Option<f64>,
+    delta_y: Option<f64>,
 ) -> Result<(), String> {
-    if let Some(dx) = delta_x {
-        if dx != 0.0 {
-            let scale = window.scale_factor().unwrap_or(1.0);
-            let cur_pos = window.outer_position().map_err(|e| e.to_string())?;
-            let delta_px = (dx * scale).round() as i32;
-            let new_pos = PhysicalPosition {
-                x: cur_pos.x + delta_px,
-                y: cur_pos.y,
-            };
+    let dx = delta_x.unwrap_or(0.0);
+    let dy = delta_y.unwrap_or(0.0);
 
-            if delta_px > 0 {
-                // COLLAPSING: shrink window size FIRST so it won't be clamped by monitor boundaries
-                let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
-                let _ = window.set_position(Position::Physical(new_pos));
-                return Ok(());
-            } else {
-                // EXPANDING: move position left FIRST to make room, then expand
-                let _ = window.set_position(Position::Physical(new_pos));
-                let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
-                return Ok(());
-            }
+    if dx != 0.0 || dy != 0.0 {
+        let scale = window.scale_factor().unwrap_or(1.0);
+        let cur_pos = window.outer_position().map_err(|e| e.to_string())?;
+        let delta_px_x = (dx * scale).round() as i32;
+        let delta_px_y = (dy * scale).round() as i32;
+        let new_pos = PhysicalPosition {
+            x: cur_pos.x + delta_px_x,
+            y: cur_pos.y + delta_px_y,
+        };
+
+        // If shrinking (collapse), resize FIRST to avoid screen edge clamping, then position.
+        // If expanding, move position FIRST to make room on screen, then resize.
+        let is_collapsing = width < 200.0;
+        if is_collapsing {
+            let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+            let _ = window.set_position(Position::Physical(new_pos));
+            return Ok(());
+        } else {
+            let _ = window.set_position(Position::Physical(new_pos));
+            let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+            return Ok(());
         }
     }
     let _ = window.set_size(Size::Logical(LogicalSize { width, height }));

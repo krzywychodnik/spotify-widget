@@ -3,12 +3,19 @@ import { useSpotifyAuth } from "./hooks/useSpotifyAuth";
 import { useSpotifyPlayer } from "./hooks/useSpotifyPlayer";
 import { useLyrics } from "./hooks/useLyrics";
 import { useWindowControl } from "./hooks/useWindowControl";
+import { useCustomization } from "./hooks/useCustomization";
 import { CollapsedWidget } from "./components/CollapsedWidget";
 import { ExpandedPlayer } from "./components/ExpandedPlayer";
 import { SettingsModal } from "./components/SettingsModal";
 
 export const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const {
+    customization,
+    updateCustomization,
+    resetToDefaults,
+  } = useCustomization();
 
   const {
     isAuthenticated,
@@ -48,7 +55,7 @@ export const App: React.FC = () => {
     handleMouseEnter,
     handleMouseLeave,
     closeApp,
-  } = useWindowControl();
+  } = useWindowControl(customization);
 
   // Listen for Tauri OAuth callback events from the Rust backend
   useEffect(() => {
@@ -89,6 +96,12 @@ export const App: React.FC = () => {
 
   const progressPercent = durationMs > 0 ? (smoothProgressMs / durationMs) * 100 : 0;
 
+  const animType = customization.animationType || "spring";
+  const animDirectionClass = `anim-dir-${customization.collapseDirection || "top-right"}`;
+  const animClass = isCollapsing
+    ? `anim-collapse-${animType} ${animDirectionClass}`
+    : `anim-expand-${animType} ${animDirectionClass}`;
+
   return (
     <main
       onMouseEnter={handleMouseEnter}
@@ -96,11 +109,7 @@ export const App: React.FC = () => {
       className="relative w-full h-full flex items-center justify-center p-1 overflow-hidden"
     >
       {isExpanded ? (
-        <div
-          className={`w-full h-full ${
-            isCollapsing ? "animate-collapse-spring" : "animate-expand-spring"
-          }`}
-        >
+        <div className={`w-full h-full ${animClass}`}>
           <ExpandedPlayer
             currentTrack={currentTrack}
             isPlaying={isPlaying}
@@ -126,6 +135,7 @@ export const App: React.FC = () => {
             scrollContainerRef={scrollContainerRef}
             isAuthenticated={isAuthenticated}
             onLoginClick={() => setIsSettingsOpen(true)}
+            customization={customization}
           />
         </div>
       ) : (
@@ -137,6 +147,7 @@ export const App: React.FC = () => {
             onNext={nextTrack}
             onPrev={prevTrack}
             progressPercent={progressPercent}
+            collapsedShape={customization.collapsedShape}
           />
         </div>
       )}
@@ -155,8 +166,12 @@ export const App: React.FC = () => {
           setIsSettingsOpen(false);
         }}
         authError={authError}
+        customization={customization}
+        onUpdateCustomization={updateCustomization}
+        onResetCustomization={resetToDefaults}
       />
     </main>
   );
 };
+
 export default App;

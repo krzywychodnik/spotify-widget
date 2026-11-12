@@ -17,7 +17,7 @@ import {
   GripHorizontal,
   X,
 } from "lucide-react";
-import { SpotifyTrack, LyricLine } from "../types";
+import { SpotifyTrack, LyricLine, AppCustomization } from "../types";
 import { LyricsView } from "./LyricsView";
 
 interface ExpandedPlayerProps {
@@ -45,6 +45,7 @@ interface ExpandedPlayerProps {
   scrollContainerRef: React.RefObject<any>;
   isAuthenticated: boolean;
   onLoginClick: () => void;
+  customization?: AppCustomization;
 }
 
 function formatTime(ms: number): string {
@@ -80,6 +81,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   scrollContainerRef,
   isAuthenticated,
   onLoginClick,
+  customization,
 }) => {
   const [activeTab, setActiveTab] = useState<"player" | "lyrics">("player");
   const [isMuted, setIsMuted] = useState(false);
@@ -147,9 +149,12 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               }`}
               title="Tekst utworu"
             >
-              <Mic className="w-3 h-3 text-spotify-green" />
+              <Mic className="w-3 h-3" style={{ color: "var(--accent-color)" }} />
               {lyrics.length > 0 && (
-                <span className="w-1.5 h-1.5 rounded-full bg-spotify-green" />
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                />
               )}
             </button>
           </div>
@@ -159,9 +164,10 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             onClick={onTogglePin}
             className={`p-1.5 rounded-lg transition ${
               isPinned
-                ? "bg-spotify-green/20 text-spotify-green border border-spotify-green/30"
+                ? "bg-white/15 border border-white/20"
                 : "text-white/40 hover:text-white hover:bg-white/10"
             }`}
+            style={isPinned ? { color: "var(--accent-color)" } : {}}
             title={isPinned ? "Przypięte (nie zwinie się)" : "Przypnij okno (zawsze rozwinięte)"}
           >
             <Pin className={`w-3.5 h-3.5 ${isPinned ? "rotate-45" : ""}`} />
@@ -171,7 +177,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           <button
             onClick={onOpenSettings}
             className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition"
-            title="Ustawienia API"
+            title="Personalizacja i Ustawienia"
           >
             <Settings className="w-3.5 h-3.5" />
           </button>
@@ -191,7 +197,10 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
       {!isAuthenticated ? (
         /* Not authenticated state */
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-spotify-green/10 border border-spotify-green/20 flex items-center justify-center text-spotify-green">
+          <div
+            className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center"
+            style={{ color: "var(--accent-color)" }}
+          >
             <Music2 className="w-7 h-7" />
           </div>
           <div className="space-y-1">
@@ -202,7 +211,8 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           </div>
           <button
             onClick={onLoginClick}
-            className="px-4 py-2 bg-spotify-green hover:bg-spotify-greenHover text-black text-xs font-bold rounded-xl shadow-lg transition active:scale-95"
+            style={{ backgroundColor: "var(--accent-color)" }}
+            className="px-4 py-2 text-black text-xs font-bold rounded-xl shadow-lg transition active:scale-95"
           >
             Otwórz konfigurację
           </button>
@@ -259,6 +269,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               isLoading={isLyricsLoading}
               onSeek={onSeek}
               scrollContainerRef={scrollContainerRef}
+              customization={customization}
             />
           </div>
         </div>
@@ -302,8 +313,11 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             >
               <div className="w-full h-1 bg-white/15 rounded-full overflow-hidden group-hover/seek:h-1.5 transition-all">
                 <div
-                  className="h-full bg-spotify-green rounded-full transition-all duration-150"
-                  style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+                  className="h-full rounded-full transition-all duration-150"
+                  style={{
+                    backgroundColor: "var(--accent-color)",
+                    width: `${Math.min(100, Math.max(0, progressPercent))}%`,
+                  }}
                 />
               </div>
               {/* Scrub thumb */}
@@ -323,16 +337,16 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           <div className="flex items-center justify-center gap-4 my-1">
             <button
               onClick={onToggleShuffle}
-              className={`p-2 rounded-full transition relative ${
-                shuffleState
-                  ? "text-spotify-green hover:text-spotify-greenHover"
-                  : "text-white/40 hover:text-white"
-              }`}
+              className="p-2 rounded-full transition relative"
+              style={shuffleState ? { color: "var(--accent-color)" } : { color: "rgba(255,255,255,0.4)" }}
               title="Losowo (Shuffle)"
             >
               <Shuffle className="w-4 h-4" />
               {shuffleState && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-spotify-green" />
+                <span
+                  className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                />
               )}
             </button>
 
@@ -346,7 +360,11 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
 
             <button
               onClick={onTogglePlay}
-              className="p-3.5 rounded-full bg-spotify-green text-black hover:bg-spotify-greenHover hover:scale-105 active:scale-95 transition shadow-lg shadow-spotify-green/20"
+              style={{
+                backgroundColor: "var(--accent-color)",
+                boxShadow: "0 10px 25px -5px var(--accent-glow)",
+              }}
+              className="p-3.5 rounded-full text-black hover:scale-105 active:scale-95 transition shadow-lg"
               title={isPlaying ? "Wstrzymaj" : "Odtwórz"}
             >
               {isPlaying ? (
@@ -366,11 +384,12 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
 
             <button
               onClick={onToggleRepeat}
-              className={`p-2 rounded-full transition relative ${
+              className="p-2 rounded-full transition relative"
+              style={
                 repeatState !== "off"
-                  ? "text-spotify-green hover:text-spotify-greenHover"
-                  : "text-white/40 hover:text-white"
-              }`}
+                  ? { color: "var(--accent-color)" }
+                  : { color: "rgba(255,255,255,0.4)" }
+              }
               title={`Powtarzanie: ${repeatState}`}
             >
               {repeatState === "track" ? (
@@ -379,7 +398,10 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 <Repeat className="w-4 h-4" />
               )}
               {repeatState !== "off" && (
-                <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-spotify-green" />
+                <span
+                  className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full"
+                  style={{ backgroundColor: "var(--accent-color)" }}
+                />
               )}
             </button>
           </div>
@@ -408,7 +430,8 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                 setIsMuted(false);
                 onVolumeChange(val);
               }}
-              className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-spotify-green hover:accent-spotify-greenHover"
+              style={{ accentColor: "var(--accent-color)" }}
+              className="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
               title={`Głośność: ${volume}%`}
             />
             <span className="text-[10px] text-white/40 w-6 text-right font-mono">

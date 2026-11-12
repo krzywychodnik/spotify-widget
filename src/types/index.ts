@@ -65,11 +65,47 @@ export interface LRCLibResponse {
   syncedLyrics?: string;
 }
 
-export interface AppSettings {
-  clientId: string;
-  autoExpandOnHover: boolean;
+export type CollapseDirection =
+  | 'top-right'
+  | 'top-left'
+  | 'bottom-right'
+  | 'bottom-left'
+  | 'center';
+
+export type AnimationType =
+  | 'spring'
+  | 'fade-zoom'
+  | 'slide'
+  | 'elastic'
+  | 'fold'
+  | 'minimal';
+
+export type BackgroundTheme = 'glass' | 'oled' | 'frosted' | 'gradient';
+
+export type CollapsedShape = 'rounded-square' | 'circle' | 'capsule';
+
+export interface AppCustomization {
+  // Positioning & Window
+  collapseDirection: CollapseDirection;
   collapseDelayMs: number;
-  showLyrics: boolean;
+  
+  // Animation
+  animationType: AnimationType;
+  animationSpeedMs: number;
+  
+  // Appearance & Colors
+  accentColor: string;
+  bgTheme: BackgroundTheme;
+  bgBlur: number;       // in px (e.g. 10 - 50)
+  bgOpacity: number;    // in % (e.g. 60 - 100)
+  collapsedShape: CollapsedShape;
+  
+  // Lyrics
   lyricsFontSize: 'small' | 'medium' | 'large';
-  acrylicBlur: boolean;
+  lyricsGlow: boolean;
+  activeLyricStyle: 'spotify-glow' | 'accent-gradient' | 'minimal-line';
+}
+
+export interface AppSettings extends AppCustomization {
+  clientId: string;
 }

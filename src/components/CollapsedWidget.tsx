@@ -1,6 +1,6 @@
 import React from "react";
 import { Play, Pause, SkipForward, SkipBack, Music2 } from "lucide-react";
-import { SpotifyTrack } from "../types";
+import { SpotifyTrack, CollapsedShape } from "../types";
 
 interface CollapsedWidgetProps {
   currentTrack: SpotifyTrack | null;
@@ -9,6 +9,7 @@ interface CollapsedWidgetProps {
   onNext: () => void;
   onPrev: () => void;
   progressPercent: number;
+  collapsedShape?: CollapsedShape;
 }
 
 export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
@@ -18,13 +19,37 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
   onNext,
   onPrev,
   progressPercent,
+  collapsedShape = "rounded-square",
 }) => {
   const albumArt = currentTrack?.album?.images?.[0]?.url;
+
+  const getShapeClasses = () => {
+    switch (collapsedShape) {
+      case "circle":
+        return {
+          wrapper: "rounded-full",
+          inner: "rounded-full",
+        };
+      case "capsule":
+        return {
+          wrapper: "rounded-[26px]",
+          inner: "rounded-[22px]",
+        };
+      case "rounded-square":
+      default:
+        return {
+          wrapper: "rounded-2xl",
+          inner: "rounded-xl",
+        };
+    }
+  };
+
+  const shape = getShapeClasses();
 
   return (
     <div
       data-tauri-drag-region
-      className="group relative w-full h-full rounded-2xl p-1.5 flex items-center justify-center cursor-pointer select-none transition-all duration-300 glass-panel-collapsed overflow-hidden shadow-2xl"
+      className={`group relative w-full h-full p-1.5 flex items-center justify-center cursor-pointer select-none transition-all duration-300 glass-panel-collapsed overflow-hidden shadow-2xl ${shape.wrapper}`}
     >
       {/* Radial progress border around album art */}
       <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-0.5">
@@ -40,7 +65,8 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
           cx="50%"
           cy="50%"
           r="42%"
-          className="stroke-spotify-green transition-all duration-300"
+          stroke="var(--accent-color)"
+          className="transition-all duration-300"
           strokeWidth="2.5"
           strokeDasharray="260"
           strokeDashoffset={260 - (260 * Math.max(0, Math.min(100, progressPercent))) / 100}
@@ -49,8 +75,10 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
         />
       </svg>
 
-      {/* Album Artwork or Spotify placeholder */}
-      <div className="relative w-16 h-16 rounded-xl overflow-hidden shadow-md flex items-center justify-center bg-zinc-900 border border-white/10">
+      {/* Album Artwork or placeholder */}
+      <div
+        className={`relative w-16 h-16 overflow-hidden shadow-md flex items-center justify-center bg-zinc-900 border border-white/10 ${shape.inner}`}
+      >
         {albumArt ? (
           <img
             src={albumArt}
@@ -60,7 +88,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
             }`}
           />
         ) : (
-          <Music2 className="w-7 h-7 text-spotify-muted animate-pulse" />
+          <Music2 className="w-7 h-7 text-white/30 animate-pulse" />
         )}
 
         {/* Hover overlay with miniature controls */}
@@ -83,7 +111,8 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
               e.stopPropagation();
               onTogglePlay();
             }}
-            className="p-1.5 rounded-full bg-spotify-green text-black hover:scale-110 active:scale-95 transition shadow-lg"
+            style={{ backgroundColor: "var(--accent-color)" }}
+            className="p-1.5 rounded-full text-black hover:scale-110 active:scale-95 transition shadow-lg"
             title={isPlaying ? "Wstrzymaj" : "Odtwórz"}
           >
             {isPlaying ? (

@@ -1,6 +1,25 @@
 import React, { useState } from "react";
-import { X, Key, LogOut, ExternalLink, Check, Copy, AlertCircle } from "lucide-react";
+import {
+  X,
+  Key,
+  LogOut,
+  ExternalLink,
+  Check,
+  Copy,
+  AlertCircle,
+  Palette,
+  Sliders,
+  RotateCcw,
+  Sparkles,
+} from "lucide-react";
 import { REDIRECT_URI } from "../services/spotifyAuth";
+import {
+  AppCustomization,
+  CollapseDirection,
+  AnimationType,
+  BackgroundTheme,
+  CollapsedShape,
+} from "../types";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -12,7 +31,19 @@ interface SettingsModalProps {
   onLogout: () => void;
   onManualCallback: (code: string, state: string) => void;
   authError: string | null;
+  customization: AppCustomization;
+  onUpdateCustomization: (updates: Partial<AppCustomization>) => void;
+  onResetCustomization: () => void;
 }
+
+const COLOR_PRESETS = [
+  { name: "Spotify Green", color: "#1DB954" },
+  { name: "Cyber Fiolet", color: "#A855F7" },
+  { name: "Neon Cyjan", color: "#06B6D4" },
+  { name: "Ognisty Karmin", color: "#F43F5E" },
+  { name: "Złoty Bursztyn", color: "#F59E0B" },
+  { name: "Arktyczna Biel", color: "#FFFFFF" },
+];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
@@ -24,14 +55,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onLogout,
   onManualCallback,
   authError,
+  customization,
+  onUpdateCustomization,
+  onResetCustomization,
 }) => {
+  const [activeTab, setActiveTab] = useState<"appearance" | "spotify" | "behavior">("appearance");
   const [inputClientId, setInputClientId] = useState(clientId);
   const [manualCode, setManualCode] = useState("");
   const [copiedRedirect, setCopiedRedirect] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSave = () => {
+  const handleSaveClientId = () => {
     onSaveClientId(inputClientId);
   };
 
@@ -45,7 +80,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const trimmed = manualCode.trim();
     if (!trimmed) return;
 
-    // Check if user pasted full redirect URL like http://localhost:8888/callback?code=...&state=...
     try {
       if (trimmed.includes("code=")) {
         const url = new URL(trimmed.startsWith("http") ? trimmed : `http://dummy.com?${trimmed}`);
@@ -58,7 +92,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         }
       }
     } catch {
-      // not a url, treat as raw code
+      // not a url
     }
 
     onManualCallback(trimmed, "");
@@ -66,13 +100,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md select-none animate-fadeIn">
-      <div className="w-full max-w-sm rounded-2xl glass-panel p-5 text-white shadow-2xl border border-white/10 flex flex-col gap-4">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75 backdrop-blur-md select-none animate-fadeIn">
+      <div className="w-full max-w-[340px] max-h-[520px] rounded-2xl glass-panel p-4 text-white shadow-2xl border border-white/10 flex flex-col gap-3 overflow-hidden">
+        {/* Header with Close */}
+        <div className="flex items-center justify-between border-b border-white/10 pb-2.5 shrink-0">
           <div className="flex items-center gap-2">
-            <Key className="w-4 h-4 text-spotify-green" />
-            <h2 className="text-sm font-bold tracking-wide">Ustawienia Spotify API</h2>
+            <Sliders className="w-4 h-4" style={{ color: "var(--accent-color)" }} />
+            <h2 className="text-xs font-bold uppercase tracking-wider text-white">Ustawienia Widgetu</h2>
           </div>
           <button
             onClick={onClose}
@@ -82,110 +116,487 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
-        {/* Client ID config */}
-        <div className="space-y-2">
-          <label className="text-xs text-white/70 font-medium block">
-            Spotify Client ID
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={inputClientId}
-              onChange={(e) => setInputClientId(e.target.value)}
-              placeholder="np. 4c3b2a1..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-spotify-green transition"
-            />
-            <button
-              onClick={handleSave}
-              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold text-white transition active:scale-95"
-            >
-              Zapisz
-            </button>
-          </div>
+        {/* Tab Navigation */}
+        <div className="grid grid-cols-3 gap-1 bg-black/40 p-1 rounded-xl border border-white/5 shrink-0">
+          <button
+            onClick={() => setActiveTab("appearance")}
+            className={`py-1 px-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+              activeTab === "appearance"
+                ? "bg-white/15 text-white shadow-sm"
+                : "text-white/40 hover:text-white/70"
+            }`}
+          >
+            <Palette className="w-3 h-3" style={activeTab === "appearance" ? { color: "var(--accent-color)" } : {}} />
+            Wygląd
+          </button>
+          <button
+            onClick={() => setActiveTab("behavior")}
+            className={`py-1 px-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+              activeTab === "behavior"
+                ? "bg-white/15 text-white shadow-sm"
+                : "text-white/40 hover:text-white/70"
+            }`}
+          >
+            <Sparkles className="w-3 h-3" style={activeTab === "behavior" ? { color: "var(--accent-color)" } : {}} />
+            Tekst / Ruch
+          </button>
+          <button
+            onClick={() => setActiveTab("spotify")}
+            className={`py-1 px-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+              activeTab === "spotify"
+                ? "bg-white/15 text-white shadow-sm"
+                : "text-white/40 hover:text-white/70"
+            }`}
+          >
+            <Key className="w-3 h-3" style={activeTab === "spotify" ? { color: "var(--accent-color)" } : {}} />
+            Spotify API
+          </button>
         </div>
 
-        {/* Redirect URI Info */}
-        <div className="space-y-1.5 bg-white/5 rounded-xl p-3 border border-white/5">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-white/60">Redirect URI (Spotify Dashboard):</span>
-            <button
-              onClick={handleCopyRedirect}
-              className="flex items-center gap-1 text-[10px] text-spotify-green hover:underline"
-            >
-              {copiedRedirect ? (
-                <>
-                  <Check className="w-3 h-3" /> Skopiowano
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3 h-3" /> Kopiuj
-                </>
-              )}
-            </button>
-          </div>
-          <div className="text-[11px] font-mono text-white/80 bg-black/40 px-2 py-1 rounded">
-            {REDIRECT_URI}
-          </div>
-        </div>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1 lyrics-scroll-container">
+          {/* TAB 1: WYGLĄD I ANIMACJE */}
+          {activeTab === "appearance" && (
+            <div className="space-y-4 text-xs">
+              {/* Kierunek Zwijania */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-white/80 block">
+                  Kierunek zwijania (Kotwica)
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {(
+                    [
+                      { id: "top-right", label: "Prawy górny ↗" },
+                      { id: "top-left", label: "Lewy górny ↖" },
+                      { id: "bottom-right", label: "Prawy dolny ↘" },
+                      { id: "bottom-left", label: "Lewy dolny ↙" },
+                      { id: "center", label: "Do środka ⦿" },
+                    ] as { id: CollapseDirection; label: string }[]
+                  ).map((dir) => (
+                    <button
+                      key={dir.id}
+                      onClick={() => onUpdateCustomization({ collapseDirection: dir.id })}
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition ${
+                        customization.collapseDirection === dir.id
+                          ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
+                          : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {dir.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-        {/* Auth status & actions */}
-        <div className="space-y-3 pt-1">
-          {authError && (
-            <div className="flex items-start gap-2 p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{authError}</span>
+              {/* Styl Animacji */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-white/80 block">
+                  Styl animacji otwierania/zwijania
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {(
+                    [
+                      { id: "spring", label: "Płynna sprężyna" },
+                      { id: "fade-zoom", label: "Kinowy zoom & blur" },
+                      { id: "slide", label: "Czysty slide" },
+                      { id: "elastic", label: "Elastyczny pop" },
+                      { id: "fold", label: "3D Acrylic fold" },
+                      { id: "minimal", label: "Minimalistyczna" },
+                    ] as { id: AnimationType; label: string }[]
+                  ).map((anim) => (
+                    <button
+                      key={anim.id}
+                      onClick={() => onUpdateCustomization({ animationType: anim.id })}
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition ${
+                        customization.animationType === anim.id
+                          ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
+                          : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {anim.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Szybkość animacji */}
+              <div className="space-y-1 bg-black/20 p-2.5 rounded-xl border border-white/5">
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-white/70">Długość animacji:</span>
+                  <span className="font-mono text-white/90 font-bold">
+                    {customization.animationSpeedMs} ms
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="160"
+                  max="900"
+                  step="20"
+                  value={customization.animationSpeedMs}
+                  onChange={(e) =>
+                    onUpdateCustomization({ animationSpeedMs: Number(e.target.value) })
+                  }
+                  style={{ accentColor: "var(--accent-color)" }}
+                  className="w-full h-1 bg-white/20 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Kolor Wiodący (Accent) */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[11px] font-semibold text-white/80">
+                    Kolor wiodący (Akcent)
+                  </label>
+                  <span className="text-[10px] font-mono text-white/40 uppercase">
+                    {customization.accentColor}
+                  </span>
+                </div>
+                {/* Presets */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {COLOR_PRESETS.map((preset) => (
+                    <button
+                      key={preset.color}
+                      onClick={() => onUpdateCustomization({ accentColor: preset.color })}
+                      className={`w-6 h-6 rounded-full transition-transform border border-white/20 flex items-center justify-center ${
+                        customization.accentColor.toLowerCase() === preset.color.toLowerCase()
+                          ? "scale-125 ring-2 ring-white/60"
+                          : "hover:scale-110 opacity-75 hover:opacity-100"
+                      }`}
+                      style={{ backgroundColor: preset.color }}
+                      title={preset.name}
+                    >
+                      {customization.accentColor.toLowerCase() === preset.color.toLowerCase() && (
+                        <Check className="w-3 h-3 text-black stroke-[3]" />
+                      )}
+                    </button>
+                  ))}
+                  {/* Custom color picker */}
+                  <label
+                    className="w-6 h-6 rounded-full border border-white/30 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-110 transition bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500"
+                    title="Wybierz własny kolor"
+                  >
+                    <input
+                      type="color"
+                      value={customization.accentColor}
+                      onChange={(e) => onUpdateCustomization({ accentColor: e.target.value })}
+                      className="opacity-0 w-0 h-0 cursor-pointer"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Styl Tła & Szkła */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-white/80 block">
+                  Styl tła
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {(
+                    [
+                      { id: "glass", label: "Szkło Akrylowe" },
+                      { id: "oled", label: "Czysty OLED" },
+                      { id: "frosted", label: "Mroźne Szkło" },
+                      { id: "gradient", label: "Gradient" },
+                    ] as { id: BackgroundTheme; label: string }[]
+                  ).map((theme) => (
+                    <button
+                      key={theme.id}
+                      onClick={() => onUpdateCustomization({ bgTheme: theme.id })}
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition ${
+                        customization.bgTheme === theme.id
+                          ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
+                          : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {theme.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Przezroczystość & Blur */}
+              <div className="space-y-2 bg-black/20 p-2.5 rounded-xl border border-white/5">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-white/70">Krycie tła (Opacity):</span>
+                    <span className="font-mono text-white/90 font-bold">
+                      {customization.bgOpacity}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="40"
+                    max="100"
+                    value={customization.bgOpacity}
+                    onChange={(e) =>
+                      onUpdateCustomization({ bgOpacity: Number(e.target.value) })
+                    }
+                    style={{ accentColor: "var(--accent-color)" }}
+                    className="w-full h-1 bg-white/20 rounded-lg cursor-pointer"
+                  />
+                </div>
+
+                <div className="space-y-1 pt-1 border-t border-white/5">
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-white/70">Rozmycie (Blur):</span>
+                    <span className="font-mono text-white/90 font-bold">
+                      {customization.bgBlur} px
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="50"
+                    value={customization.bgBlur}
+                    onChange={(e) =>
+                      onUpdateCustomization({ bgBlur: Number(e.target.value) })
+                    }
+                    style={{ accentColor: "var(--accent-color)" }}
+                    className="w-full h-1 bg-white/20 rounded-lg cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Kształt po zwinięciu */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-white/80 block">
+                  Kształt zwiniętego widgetu
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(
+                    [
+                      { id: "rounded-square", label: "Kwadrat" },
+                      { id: "circle", label: "Okrągły" },
+                      { id: "capsule", label: "Kapsułka" },
+                    ] as { id: CollapsedShape; label: string }[]
+                  ).map((shape) => (
+                    <button
+                      key={shape.id}
+                      onClick={() => onUpdateCustomization({ collapsedShape: shape.id })}
+                      className={`py-1.5 px-1 rounded-lg text-[11px] font-medium border text-center transition ${
+                        customization.collapsedShape === shape.id
+                          ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
+                          : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {shape.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
-          {isAuthenticated ? (
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between text-xs text-spotify-green bg-spotify-green/10 px-3 py-2 rounded-xl border border-spotify-green/20 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-spotify-green animate-pulse" />
-                  Połączono ze Spotify
-                </span>
+          {/* TAB 2: TEKST I ZACHOWANIE */}
+          {activeTab === "behavior" && (
+            <div className="space-y-4 text-xs">
+              {/* Rozmiar czcionki tekstu */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-white/80 block">
+                  Rozmiar czcionki tekstu piosenki
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(
+                    [
+                      { id: "small", label: "Mała" },
+                      { id: "medium", label: "Średnia" },
+                      { id: "large", label: "Duża" },
+                    ] as { id: "small" | "medium" | "large"; label: string }[]
+                  ).map((size) => (
+                    <button
+                      key={size.id}
+                      onClick={() => onUpdateCustomization({ lyricsFontSize: size.id })}
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-center transition ${
+                        customization.lyricsFontSize === size.id
+                          ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
+                          : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {size.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Styl aktywnego wersu */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-white/80 block">
+                  Styl aktywnego wersu tekstu
+                </label>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {(
+                    [
+                      { id: "spotify-glow", label: "Pasek + Poświata akcentu" },
+                      { id: "accent-gradient", label: "Tekst w kolorze akcentu" },
+                      { id: "minimal-line", label: "Minimalistyczny pasek" },
+                    ] as {
+                      id: "spotify-glow" | "accent-gradient" | "minimal-line";
+                      label: string;
+                    }[]
+                  ).map((style) => (
+                    <button
+                      key={style.id}
+                      onClick={() => onUpdateCustomization({ activeLyricStyle: style.id })}
+                      className={`py-1.5 px-2.5 rounded-lg text-[11px] font-medium border text-left transition ${
+                        customization.activeLyricStyle === style.id
+                          ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
+                          : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {style.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Opóźnienie autozwijania */}
+              <div className="space-y-1 bg-black/20 p-2.5 rounded-xl border border-white/5">
+                <div className="flex justify-between items-center text-[11px]">
+                  <span className="text-white/70">Opóźnienie zwijania po zjechaniu kursoru:</span>
+                  <span className="font-mono text-white/90 font-bold">
+                    {customization.collapseDelayMs} ms
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="150"
+                  max="1500"
+                  step="50"
+                  value={customization.collapseDelayMs}
+                  onChange={(e) =>
+                    onUpdateCustomization({ collapseDelayMs: Number(e.target.value) })
+                  }
+                  style={{ accentColor: "var(--accent-color)" }}
+                  className="w-full h-1 bg-white/20 rounded-lg cursor-pointer"
+                />
+              </div>
+
+              {/* Reset Button */}
+              <div className="pt-2">
                 <button
-                  onClick={onLogout}
-                  className="flex items-center gap-1 text-white/60 hover:text-red-400 text-xs transition"
+                  onClick={onResetCustomization}
+                  className="w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95"
                 >
-                  <LogOut className="w-3 h-3" /> Wyloguj
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Przywróć ustawienia domyślne
                 </button>
               </div>
             </div>
-          ) : (
-            <button
-              onClick={onLogin}
-              className="w-full py-2.5 px-4 bg-spotify-green hover:bg-spotify-greenHover text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              Zaloguj przez Spotify (OAuth)
-            </button>
+          )}
+
+          {/* TAB 3: SPOTIFY API */}
+          {activeTab === "spotify" && (
+            <div className="space-y-3 text-xs">
+              {/* Client ID config */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-white/70 font-semibold block">
+                  Spotify Client ID
+                </label>
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    value={inputClientId}
+                    onChange={(e) => setInputClientId(e.target.value)}
+                    placeholder="Wklej Client ID..."
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent-color)] transition"
+                  />
+                  <button
+                    onClick={handleSaveClientId}
+                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-semibold text-white transition active:scale-95"
+                  >
+                    Zapisz
+                  </button>
+                </div>
+              </div>
+
+              {/* Redirect URI Info */}
+              <div className="space-y-1.5 bg-black/20 rounded-xl p-2.5 border border-white/5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-white/60">Redirect URI (Spotify Dashboard):</span>
+                  <button
+                    onClick={handleCopyRedirect}
+                    style={{ color: "var(--accent-color)" }}
+                    className="flex items-center gap-1 text-[10px] hover:underline"
+                  >
+                    {copiedRedirect ? (
+                      <>
+                        <Check className="w-3 h-3" /> Skopiowano
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" /> Kopiuj
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="text-[10px] font-mono text-white/80 bg-black/40 px-2 py-1 rounded truncate">
+                  {REDIRECT_URI}
+                </div>
+              </div>
+
+              {/* Auth status & actions */}
+              <div className="space-y-2 pt-1">
+                {authError && (
+                  <div className="flex items-start gap-1.5 p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px]">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>{authError}</span>
+                  </div>
+                )}
+
+                {isAuthenticated ? (
+                  <div className="flex items-center justify-between text-xs bg-white/5 px-3 py-2 rounded-xl border border-white/10 font-medium">
+                    <span className="flex items-center gap-1.5 text-white">
+                      <span
+                        className="w-2 h-2 rounded-full animate-pulse"
+                        style={{ backgroundColor: "var(--accent-color)" }}
+                      />
+                      Połączono ze Spotify
+                    </span>
+                    <button
+                      onClick={onLogout}
+                      className="flex items-center gap-1 text-white/50 hover:text-red-400 text-xs transition"
+                    >
+                      <LogOut className="w-3 h-3" /> Wyloguj
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={onLogin}
+                    style={{ backgroundColor: "var(--accent-color)" }}
+                    className="w-full py-2.5 px-4 text-black font-bold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition active:scale-95"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Zaloguj przez Spotify (OAuth)
+                  </button>
+                )}
+              </div>
+
+              {/* Manual code input fallback */}
+              {!isAuthenticated && (
+                <div className="pt-2 border-t border-white/10 space-y-1.5">
+                  <span className="text-[10px] text-white/50 block">
+                    Alternatywnie: wklej adres callback lub kod:
+                  </span>
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={manualCode}
+                      onChange={(e) => setManualCode(e.target.value)}
+                      placeholder="Wklej callback URL lub code..."
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-2 py-1 text-[11px] text-white placeholder-white/20 focus:outline-none focus:border-[var(--accent-color)]"
+                    />
+                    <button
+                      onClick={handleProcessManualCode}
+                      className="px-2.5 py-1 rounded-xl text-[11px] font-semibold transition bg-white/10 hover:bg-white/20 text-white"
+                    >
+                      Autoryzuj
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
-
-        {/* Manual code input fallback */}
-        {!isAuthenticated && (
-          <div className="pt-2 border-t border-white/10 space-y-2">
-            <span className="text-[10px] text-white/50 block">
-              Alternatywnie: wklej kod autoryzacji z adresu URL po zalogowaniu:
-            </span>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={manualCode}
-                onChange={(e) => setManualCode(e.target.value)}
-                placeholder="Wklej adres callback lub code..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1 text-[11px] text-white placeholder-white/20 focus:outline-none focus:border-spotify-green"
-              />
-              <button
-                onClick={handleProcessManualCode}
-                className="px-2.5 py-1 bg-spotify-green/20 hover:bg-spotify-green/30 text-spotify-green rounded-xl text-[11px] font-semibold transition"
-              >
-                Autoryzuj
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
