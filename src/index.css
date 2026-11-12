@@ -25,7 +25,7 @@
   }
 }
 
-/* Custom scrollbar for lyrics section */
+/* Custom scrollbar for lyrics and settings */
 .lyrics-scroll-container::-webkit-scrollbar {
   width: 4px;
 }
@@ -35,12 +35,12 @@
 }
 
 .lyrics-scroll-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.18);
   border-radius: 4px;
 }
 
 .lyrics-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.38);
 }
 
 /* Dynamic Themes */
@@ -64,6 +64,27 @@
     0 12px 32px 0 rgba(0, 0, 0, 0.6),
     0 0 20px 0 var(--accent-glow),
     0 1px 0 0 rgba(255, 255, 255, 0.15) inset;
+}
+
+/* Border Styles */
+[data-border="glow"] .glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.75), 0 0 25px 0 var(--accent-glow);
+}
+[data-border="subtle"] .glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
+}
+[data-border="none"] .glass-panel {
+  border: none;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
+}
+[data-border="rainbow"] .glass-panel {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  box-shadow: 
+    0 0 24px 2px rgba(236, 72, 153, 0.25),
+    0 0 32px 4px rgba(59, 130, 246, 0.25);
 }
 
 /* OLED Theme override */
@@ -104,6 +125,93 @@
   -webkit-backdrop-filter: blur(var(--bg-blur));
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
+
+/* Custom Background overrides when media is active */
+[data-bg-type="image"] .glass-panel,
+[data-bg-type="video"] .glass-panel,
+[data-bg-type="aurora"] .glass-panel,
+[data-bg-type="mesh"] .glass-panel {
+  background: rgba(14, 14, 16, calc(var(--bg-opacity) * 0.45));
+}
+
+[data-bg-type="image"] .glass-panel-collapsed,
+[data-bg-type="video"] .glass-panel-collapsed,
+[data-bg-type="aurora"] .glass-panel-collapsed,
+[data-bg-type="mesh"] .glass-panel-collapsed {
+  background: rgba(14, 14, 16, calc(var(--bg-opacity) * 0.6));
+}
+
+/* Animated Aurora Keyframes */
+@keyframes auroraWave {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate(6%, 8%) rotate(120deg) scale(1.12);
+  }
+  66% {
+    transform: translate(-5%, 6%) rotate(240deg) scale(0.95);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg) scale(1);
+  }
+}
+.animate-aurora-wave {
+  animation: auroraWave 24s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Animated Mesh Flow Keyframes */
+@keyframes meshFlow {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.22) rotate(180deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+.animate-mesh-flow {
+  animation: meshFlow 28s linear infinite;
+  will-change: transform;
+}
+
+/* Vinyl Spin */
+@keyframes vinylSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-vinyl-spin {
+  animation: vinylSpin 12s linear infinite;
+}
+
+/* Visualizer Bars */
+@keyframes eqBar1 {
+  0%, 100% { height: 4px; }
+  50% { height: 18px; }
+}
+@keyframes eqBar2 {
+  0%, 100% { height: 14px; }
+  50% { height: 6px; }
+}
+@keyframes eqBar3 {
+  0%, 100% { height: 6px; }
+  50% { height: 20px; }
+}
+@keyframes eqBar4 {
+  0%, 100% { height: 16px; }
+  50% { height: 8px; }
+}
+.eq-bar-1 { animation: eqBar1 0.75s ease-in-out infinite; }
+.eq-bar-2 { animation: eqBar2 0.65s ease-in-out infinite 0.15s; }
+.eq-bar-3 { animation: eqBar3 0.85s ease-in-out infinite 0.05s; }
+.eq-bar-4 { animation: eqBar4 0.6s ease-in-out infinite 0.2s; }
 
 /* Collapsed shapes */
 [data-shape="rounded-square"] .widget-shape {

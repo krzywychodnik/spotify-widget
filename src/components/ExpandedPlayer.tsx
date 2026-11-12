@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { SpotifyTrack, LyricLine, AppCustomization } from "../types";
 import { LyricsView } from "./LyricsView";
+import { DynamicBackground } from "./DynamicBackground";
 
 interface ExpandedPlayerProps {
   currentTrack: SpotifyTrack | null;
@@ -109,12 +110,29 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
     }
   };
 
+  const getAlbumArtRadius = () => {
+    switch (customization?.albumArtRadius) {
+      case "circle":
+        return "rounded-full";
+      case "normal":
+        return "rounded-xl";
+      case "rounded":
+      default:
+        return "rounded-2xl";
+    }
+  };
+
   return (
-    <div className="w-full h-full glass-panel rounded-3xl flex flex-col overflow-hidden text-white select-none transition-all duration-300 shadow-2xl border border-white/10">
+    <div className="relative w-full h-full glass-panel rounded-3xl flex flex-col overflow-hidden text-white select-none transition-all duration-300 shadow-2xl">
+      {/* Dynamic Custom Background Layer (image, video, gif, aurora, particles, mesh) */}
+      {customization && (
+        <DynamicBackground customization={customization} isPlaying={isPlaying} />
+      )}
+
       {/* Draggable Header */}
       <div
         data-tauri-drag-region
-        className="h-11 px-4 flex items-center justify-between border-b border-white/5 bg-white/[0.02] cursor-grab active:cursor-grabbing shrink-0"
+        className="h-11 px-4 flex items-center justify-between border-b border-white/5 bg-white/[0.02] cursor-grab active:cursor-grabbing shrink-0 z-20"
       >
         <div data-tauri-drag-region className="flex items-center gap-2">
           <GripHorizontal className="w-4 h-4 text-white/30" />
@@ -124,11 +142,21 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
           >
             Spotify Overlay
           </span>
+
+          {/* Simulated Animated EQ Visualizer */}
+          {customization?.showVisualizer && isPlaying && (
+            <div className="flex items-end gap-0.5 h-3.5 px-1.5 opacity-80">
+              <span className="w-0.5 rounded-full bg-[var(--accent-color)] eq-bar-1" />
+              <span className="w-0.5 rounded-full bg-[var(--accent-color)] eq-bar-2" />
+              <span className="w-0.5 rounded-full bg-[var(--accent-color)] eq-bar-3" />
+              <span className="w-0.5 rounded-full bg-[var(--accent-color)] eq-bar-4" />
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-1">
           {/* Tab Switcher */}
-          <div className="flex bg-black/40 p-0.5 rounded-lg border border-white/5 mr-1">
+          <div className="flex bg-black/40 p-0.5 rounded-lg border border-white/5 mr-1 backdrop-blur-sm">
             <button
               onClick={() => setActiveTab("player")}
               className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition flex items-center gap-1 ${
@@ -196,9 +224,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
       {/* Main Body */}
       {!isAuthenticated ? (
         /* Not authenticated state */
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4 z-10">
           <div
-            className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center"
+            className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm"
             style={{ color: "var(--accent-color)" }}
           >
             <Music2 className="w-7 h-7" />
@@ -219,8 +247,8 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
         </div>
       ) : !currentTrack ? (
         /* Idle / Nothing Playing state */
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 animate-pulse">
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-4 z-10">
+          <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 animate-pulse backdrop-blur-sm">
             <Music2 className="w-7 h-7" />
           </div>
           <div className="space-y-1">
@@ -232,9 +260,9 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
         </div>
       ) : activeTab === "lyrics" ? (
         /* Lyrics View */
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-hidden z-10">
           {/* Mini Track Bar in Lyrics View */}
-          <div className="px-4 py-2 flex items-center justify-between border-b border-white/5 bg-black/20 shrink-0">
+          <div className="px-4 py-2 flex items-center justify-between border-b border-white/5 bg-black/30 backdrop-blur-md shrink-0">
             <div className="flex items-center gap-2 overflow-hidden">
               <img
                 src={albumArt}
@@ -275,21 +303,46 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
         </div>
       ) : (
         /* Player View */
-        <div className="flex-1 flex flex-col justify-between p-5 overflow-hidden">
+        <div className="flex-1 flex flex-col justify-between p-5 overflow-hidden z-10">
           {/* Album Artwork & Info */}
           <div className="flex flex-col items-center text-center gap-3 mt-1">
-            <div className="relative group/art w-44 h-44 rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-zinc-900">
-              {albumArt ? (
-                <img
-                  src={albumArt}
-                  alt={currentTrack.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover/art:scale-105"
+            <div className="relative group/art w-44 h-44 flex items-center justify-center">
+              {/* Optional ambient colorful glow behind album art */}
+              {customization?.albumArtGlow && (
+                <div
+                  className="absolute inset-0 blur-2xl opacity-40 rounded-full transition-all duration-700 pointer-events-none"
+                  style={{
+                    backgroundColor: "var(--accent-color)",
+                    transform: isPlaying ? "scale(1.2)" : "scale(0.9)",
+                  }}
                 />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Music2 className="w-12 h-12 text-white/20" />
-                </div>
               )}
+
+              <div
+                className={`relative w-full h-full overflow-hidden shadow-2xl border border-white/10 bg-zinc-900 ${getAlbumArtRadius()} ${
+                  customization?.albumArtSpin && isPlaying ? "animate-vinyl-spin" : ""
+                }`}
+              >
+                {albumArt ? (
+                  <img
+                    src={albumArt}
+                    alt={currentTrack.name}
+                    className={`w-full h-full object-cover transition-transform duration-700 ${
+                      !customization?.albumArtSpin ? "group-hover/art:scale-105" : ""
+                    }`}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Music2 className="w-12 h-12 text-white/20" />
+                  </div>
+                )}
+                {/* Center vinyl spindle dot if spin is active */}
+                {customization?.albumArtSpin && (
+                  <div className="absolute inset-0 m-auto w-6 h-6 rounded-full bg-zinc-950 border-2 border-white/20 shadow-inner flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="w-full max-w-[280px] space-y-1">

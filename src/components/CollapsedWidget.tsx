@@ -1,6 +1,7 @@
 import React from "react";
 import { Play, Pause, SkipForward, SkipBack, Music2 } from "lucide-react";
-import { SpotifyTrack, CollapsedShape } from "../types";
+import { SpotifyTrack, CollapsedShape, AppCustomization } from "../types";
+import { DynamicBackground } from "./DynamicBackground";
 
 interface CollapsedWidgetProps {
   currentTrack: SpotifyTrack | null;
@@ -10,6 +11,7 @@ interface CollapsedWidgetProps {
   onPrev: () => void;
   progressPercent: number;
   collapsedShape?: CollapsedShape;
+  customization?: AppCustomization;
 }
 
 export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
@@ -20,6 +22,7 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
   onPrev,
   progressPercent,
   collapsedShape = "rounded-square",
+  customization,
 }) => {
   const albumArt = currentTrack?.album?.images?.[0]?.url;
 
@@ -51,8 +54,13 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
       data-tauri-drag-region
       className={`group relative w-full h-full p-1.5 flex items-center justify-center cursor-pointer select-none transition-all duration-300 glass-panel-collapsed overflow-hidden shadow-2xl ${shape.wrapper}`}
     >
+      {/* Background Media */}
+      {customization && (
+        <DynamicBackground customization={customization} isPlaying={isPlaying} />
+      )}
+
       {/* Radial progress border around album art */}
-      <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-0.5">
+      <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none p-0.5 z-10">
         <circle
           cx="50%"
           cy="50%"
@@ -77,14 +85,18 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
 
       {/* Album Artwork or placeholder */}
       <div
-        className={`relative w-16 h-16 overflow-hidden shadow-md flex items-center justify-center bg-zinc-900 border border-white/10 ${shape.inner}`}
+        className={`relative w-16 h-16 overflow-hidden shadow-md flex items-center justify-center bg-zinc-900 border border-white/10 z-10 ${shape.inner}`}
       >
         {albumArt ? (
           <img
             src={albumArt}
             alt={currentTrack?.name || "Album cover"}
             className={`w-full h-full object-cover transition-transform duration-500 ${
-              isPlaying ? "scale-105" : "scale-100 opacity-80"
+              customization?.albumArtSpin && isPlaying
+                ? "animate-vinyl-spin"
+                : isPlaying
+                ? "scale-105"
+                : "scale-100 opacity-80"
             }`}
           />
         ) : (

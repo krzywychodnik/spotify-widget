@@ -22,6 +22,7 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
   const fontSize = customization?.lyricsFontSize || "medium";
   const lyricStyle = customization?.activeLyricStyle || "spotify-glow";
   const glow = customization?.lyricsGlow !== false;
+  const textAlign = customization?.lyricsAlign || "left";
 
   const getFontSizeClasses = (isActive: boolean) => {
     switch (fontSize) {
@@ -57,7 +58,7 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
   return (
     <div
       ref={scrollContainerRef}
-      className="lyrics-scroll-container w-full h-full overflow-y-auto px-4 py-6 space-y-4 select-none relative scroll-smooth"
+      className="lyrics-scroll-container w-full h-full overflow-y-auto px-4 py-6 space-y-4 select-none relative scroll-smooth z-10"
     >
       <div className="h-10" /> {/* Top spacing so top lyrics can center */}
       {lyrics.map((line, index) => {
@@ -69,19 +70,23 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
             key={`${line.timeMs}-${index}`}
             data-lyric-index={index}
             onClick={() => onSeek(line.timeMs)}
-            className={`lyric-line cursor-pointer py-1 px-2 rounded-lg transition-all duration-300 text-left ${getFontSizeClasses(
+            className={`lyric-line cursor-pointer py-1.5 px-3 rounded-xl transition-all duration-300 ${
+              textAlign === "center" ? "text-center" : "text-left"
+            } ${getFontSizeClasses(isActive)} ${
               isActive
-            )} ${
-              isActive
-                ? `active style-${lyricStyle} bg-white/5 pl-3 border-l-2 border-[var(--accent-color)] ${
-                    glow ? "shadow-sm" : ""
-                  }`
+                ? `active style-${lyricStyle} bg-white/10 ${
+                    textAlign === "left" ? "pl-3.5 border-l-2 border-[var(--accent-color)]" : ""
+                  } ${glow ? "shadow-sm" : ""}`
                 : isPast
-                ? "inactive text-white/30 hover:text-white/60 hover:bg-white/[0.02]"
-                : "inactive text-white/50 hover:text-white/80 hover:bg-white/[0.02]"
+                ? "inactive text-white/35 hover:text-white/60 hover:bg-white/[0.03]"
+                : "inactive text-white/55 hover:text-white/80 hover:bg-white/[0.03]"
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
+            <div
+              className={`flex items-center gap-2 ${
+                textAlign === "center" ? "justify-center" : "justify-between"
+              }`}
+            >
               <span className="leading-snug tracking-wide">{line.text}</span>
               {isActive && (
                 <Mic className="w-3.5 h-3.5 text-[var(--accent-color)] shrink-0 animate-pulse" />

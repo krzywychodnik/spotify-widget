@@ -28,7 +28,10 @@ function getCollapseDeltas(direction: CollapseDirection) {
   }
 }
 
-export function useWindowControl(customization: AppCustomization = DEFAULT_CUSTOMIZATION) {
+export function useWindowControl(
+  customization: AppCustomization = DEFAULT_CUSTOMIZATION,
+  preventCollapse: boolean = false
+) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isCollapsing, setIsCollapsing] = useState<boolean>(false);
   const [isPinned, setIsPinned] = useState<boolean>(() => {
@@ -39,11 +42,21 @@ export function useWindowControl(customization: AppCustomization = DEFAULT_CUSTO
   const collapseAnimTimeoutRef = useRef<number | null>(null);
   const isExpandedRef = useRef<boolean>(false);
 
-  // Keep a ref to the latest customization to avoid stale closures
+  // Keep refs to avoid stale closures
   const customizationRef = useRef(customization);
   useEffect(() => {
     customizationRef.current = customization;
   }, [customization]);
+
+  const preventCollapseRef = useRef(preventCollapse);
+  useEffect(() => {
+    preventCollapseRef.current = preventCollapse;
+    // If settings or modal just opened, cancel any pending collapse
+    if (preventCollapse && leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+  }, [preventCollapse]);
 
   // Resize native Tauri window if running in Tauri with exact deltaX and deltaY
   const resizeNativeWindow = useCallback(
@@ -90,7 +103,8 @@ export function useWindowControl(customization: AppCustomization = DEFAULT_CUSTO
   }, [resizeNativeWindow]);
 
   const collapse = useCallback(() => {
-    if (isPinned) return;
+    // DO NOT collapse if pinned OR if settings/modal is currently open!
+    if (isPinned || preventCollapseRef.current) return;
     if (!isExpandedRef.current) return;
 
     // Trigger visual collapse animation first
@@ -103,6 +117,12 @@ export function useWindowControl(customization: AppCustomization = DEFAULT_CUSTO
     const duration = customizationRef.current.animationSpeedMs || 420;
 
     collapseAnimTimeoutRef.current = window.setTimeout(() => {
+      // Re-check preventCollapse in case settings modal opened during animation
+      if (preventCollapseRef.current) {
+        setIsCollapsing(false);
+        return;
+      }
+
       isExpandedRef.current = false;
       setIsExpanded(false);
       setIsCollapsing(false);
@@ -133,7 +153,9 @@ export function useWindowControl(customization: AppCustomization = DEFAULT_CUSTO
   }, [expand]);
 
   const handleMouseLeave = useCallback(() => {
-    if (isPinned) return;
+    // If pinned or settings panel is open, do NOT initiate collapse
+    if (isPinned || preventCollapseRef.current) return;
+
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current);
     }

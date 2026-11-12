@@ -47,6 +47,7 @@ export const App: React.FC = () => {
   const { lyrics, activeLineIndex, isLoading: isLyricsLoading, scrollContainerRef } =
     useLyrics(currentTrack, smoothProgressMs);
 
+  // When isSettingsOpen is true, collapse is strictly prevented!
   const {
     isExpanded,
     isCollapsing,
@@ -55,7 +56,7 @@ export const App: React.FC = () => {
     handleMouseEnter,
     handleMouseLeave,
     closeApp,
-  } = useWindowControl(customization);
+  } = useWindowControl(customization, isSettingsOpen);
 
   // Listen for Tauri OAuth callback events from the Rust backend
   useEffect(() => {
@@ -148,6 +149,7 @@ export const App: React.FC = () => {
             onPrev={prevTrack}
             progressPercent={progressPercent}
             collapsedShape={customization.collapsedShape}
+            customization={customization}
           />
         </div>
       )}
