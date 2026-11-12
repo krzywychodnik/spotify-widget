@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { SpotifyTrack, LyricLine, AppCustomization, PRESET_GIFS } from "../types";
 import { LyricsView } from "./LyricsView";
+import { ParticlesBackground } from "./ParticlesBackground";
 
 interface ExpandedPlayerProps {
   currentTrack: SpotifyTrack | null;
@@ -167,22 +168,10 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
       )}
 
       {customization?.bgTheme === "particles" && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          <div
-            className="absolute inset-0 opacity-60"
-            style={{
-              backgroundImage: `radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
-                                radial-gradient(2px 2px at 40px 70px, var(--accent-color), rgba(0,0,0,0)),
-                                radial-gradient(1.5px 1.5px at 90px 40px, #ec4899, rgba(0,0,0,0)),
-                                radial-gradient(2px 2px at 160px 120px, #ffffff, rgba(0,0,0,0)),
-                                radial-gradient(2.5px 2.5px at 230px 80px, var(--accent-color), rgba(0,0,0,0)),
-                                radial-gradient(1.5px 1.5px at 290px 180px, #ffffff, rgba(0,0,0,0))`,
-              backgroundSize: "320px 240px",
-              animation: "meshFlow 40s linear infinite",
-            }}
-          />
-          <div className="absolute inset-0 bg-black/50" />
-        </div>
+        <ParticlesBackground
+          accentColor={customization.accentColor}
+          isPlaying={isPlaying}
+        />
       )}
 
       {customization?.bgTheme === "mesh" && (
