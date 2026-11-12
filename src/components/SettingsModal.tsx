@@ -40,6 +40,12 @@ interface SettingsModalProps {
 }
 
 const COLOR_PRESETS = [
+  {
+    name: "Author's Favorite (#6F4A16)",
+    color: "#6F4A16",
+    isAuthorFav: true,
+    tooltip: "Author's favorite theme color (#6F4A16)",
+  },
   { name: "Spotify Green", color: "#1DB954" },
   { name: "Cyber Fiolet", color: "#A855F7" },
   { name: "Neon Cyjan", color: "#06B6D4" },
@@ -256,23 +262,49 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
                 {/* Presets */}
                 <div className="flex items-center gap-2 flex-wrap">
-                  {COLOR_PRESETS.map((preset) => (
-                    <button
-                      key={preset.color}
-                      onClick={() => onUpdateCustomization({ accentColor: preset.color })}
-                      className={`w-6 h-6 rounded-full transition-transform border border-white/20 flex items-center justify-center ${
-                        customization.accentColor.toLowerCase() === preset.color.toLowerCase()
-                          ? "scale-125 ring-2 ring-white/60"
-                          : "hover:scale-110 opacity-75 hover:opacity-100"
-                      }`}
-                      style={{ backgroundColor: preset.color }}
-                      title={preset.name}
-                    >
-                      {customization.accentColor.toLowerCase() === preset.color.toLowerCase() && (
-                        <Check className="w-3 h-3 text-black stroke-[3]" />
-                      )}
-                    </button>
-                  ))}
+                  {COLOR_PRESETS.map((preset) => {
+                    const isFav = Boolean((preset as any).isAuthorFav);
+                    const isSelected =
+                      customization.accentColor.toLowerCase() === preset.color.toLowerCase();
+
+                    return (
+                      <div key={preset.color} className="relative group/color flex items-center">
+                        <button
+                          onClick={() => onUpdateCustomization({ accentColor: preset.color })}
+                          className={`w-6 h-6 rounded-full transition-transform border flex items-center justify-center relative ${
+                            isFav
+                              ? "border-amber-400/80 shadow-[0_0_8px_rgba(245,158,11,0.4)]"
+                              : "border-white/20"
+                          } ${
+                            isSelected
+                              ? "scale-125 ring-2 ring-white/60"
+                              : "hover:scale-110 opacity-75 hover:opacity-100"
+                          }`}
+                          style={{ backgroundColor: preset.color }}
+                          title={(preset as any).tooltip || preset.name}
+                        >
+                          {isSelected && (
+                            <Check className="w-3 h-3 text-white stroke-[3] drop-shadow" />
+                          )}
+                          {isFav && (
+                            <span className="absolute -top-1.5 -right-1.5 text-[8px] leading-none pointer-events-none select-none filter drop-shadow">
+                              ⭐
+                            </span>
+                          )}
+                        </button>
+
+                        {/* Tooltip for Author's Favorite */}
+                        {isFav && (
+                          <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 hidden group-hover/color:flex flex-col items-center z-30 pointer-events-none">
+                            <span className="bg-zinc-900/95 text-amber-200 border border-amber-500/40 text-[9px] font-semibold px-2 py-0.5 rounded shadow-lg whitespace-nowrap">
+                              Author's Favorite (Theme Choice)
+                            </span>
+                            <span className="w-1.5 h-1.5 bg-zinc-900 border-r border-b border-amber-500/40 rotate-45 -mt-1" />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                   {/* Custom color picker */}
                   <label
                     className="w-6 h-6 rounded-full border border-white/30 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-110 transition bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500"
