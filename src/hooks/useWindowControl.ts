@@ -2,8 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 export const COLLAPSED_SIZE = { width: 92, height: 92 };
 export const EXPANDED_SIZE = { width: 380, height: 560 };
-const DEBOUNCE_MS = 380;
-const COLLAPSE_ANIMATION_MS = 240;
+const DEBOUNCE_MS = 450;
+const COLLAPSE_ANIMATION_MS = 380;
 
 export function useWindowControl() {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -112,16 +112,20 @@ export function useWindowControl() {
     setIsPinned((prev) => {
       const next = !prev;
       localStorage.setItem("widget_pinned", String(next));
+      // If pinning while collapsed, expand
       if (next && !isExpandedRef.current) {
         expand();
       }
+      // If unpinning, DO NOT collapse automatically! Stay expanded!
+      // It will only collapse when the user actually moves the mouse away (mouseleave)
       return next;
     });
   }, [expand]);
 
-  // Initial window size
+  // Initial window size ONLY ONCE on mount
   useEffect(() => {
-    if (isPinned) {
+    const initiallyPinned = localStorage.getItem("widget_pinned") === "true";
+    if (initiallyPinned) {
       isExpandedRef.current = true;
       setIsExpanded(true);
       resizeNativeWindow(EXPANDED_SIZE.width, EXPANDED_SIZE.height, 0);
@@ -130,7 +134,7 @@ export function useWindowControl() {
       setIsExpanded(false);
       resizeNativeWindow(COLLAPSED_SIZE.width, COLLAPSED_SIZE.height, 0);
     }
-  }, [isPinned, resizeNativeWindow]);
+  }, [resizeNativeWindow]);
 
   const closeApp = useCallback(async () => {
     try {
