@@ -1,116 +1,174 @@
-# 🎵 Spotify Floating Mini-Player & Lyrics Overlay
+# Spotify Floating Widget
 
-Nowoczesny, ultralekki widget desktopowy dla **Spotify** działający w trybie nakładki (**Always on Top**), zbudowany na silniku **Tauri v2** oraz **React + TypeScript + Tailwind CSS**.
-
-Aplikacja pływa ponad grami, przeglądarką i programami, zajmuje minimalną ilość pamięci RAM (~20 MB) i oferuje inteligentne rozwijanie po najechaniu myszą oraz synchronizację tekstu piosenek w czasie rzeczywistym (**LRCLIB API**).
+A lightweight desktop overlay widget for Spotify built with **Tauri v2**, **React 18**, **TypeScript**, and **Tailwind CSS**. It stays on top of full-screen applications, games, and browser windows, providing playback controls, synchronized lyrics, and playlist browsing without taking focus.
 
 ---
 
-## ✨ Kluczowe Funkcje
+## Features
 
-- **📌 Zawsze na wierzchu & Bez ramek (Overlay):**
-  - Brak systemowych ramek (`decorations: false`), przezroczyste tło (`transparent: true`) oraz właściwość `always_on_top: true`.
-  - Estetyczny, ciemny motyw Spotify z efektem szkła akrylowego (**glassmorphism** / `backdrop-blur`).
-- **🪟 Dwa stany okna (Smart Hover & Pin):**
-  - **Tryb zwinięty (Collapsed / Idle ~92x92 px):** Kompaktowy widżet w rogu ekranu z okładką albumu, promienistym paskiem postępu i miniaturowymi kontrolkami (Play/Pause, Next/Prev).
-  - **Tryb rozwinięty (Expanded na Hover):** Płynne, animowane rozszerzenie okna po najechaniu kursorem (`mouseenter`). Zawiera pełną okładkę, tytuł utworu, artystę, interaktywny pasek postępu (seek) oraz pełne przyciski odtwarzacza (Shuffle, Prev, Play/Pause, Next, Repeat, Volume slider) i sekcję z napisami.
-  - **Automatyczne zwijanie:** Po zjechaniu kursorem (`mouseleave`) z inteligentnym opóźnieniem (debounce 380 ms).
-  - **Tryb blokady (Pin / Lock 📌):** Przycisk pinezki w nagłówku zamraża okno w trybie rozwiniętym i ignoruje zjechanie kursorem.
-  - **Przesuwanie (Draggable):** Możliwość chwycenia i swobodnego przeciągnięcia okna po całym ekranie (`data-tauri-drag-region`).
-- **⚡ Pełna integracja ze Spotify Web API (Spotify Connect):**
-  - **Autoryzacja OAuth 2.0 PKCE:** Bezpieczne logowanie bez ujawniania sekretu klienta. Wbudowany w backend serwer callback na `http://127.0.0.1:8888/callback` automatycznie przechwytuje kod autoryzacji.
-  - **Wymagane uprawnienia (Scopes):** `user-read-playback-state`, `user-modify-playback-state`, `user-read-currently-playing`.
-  - **Optymistyczna synchronizacja:** Płynny pasek postępu (`requestAnimationFrame`) i odświeżanie stanu co 1.5 sekundy.
-- **🎤 Synchronizacja napisów w czasie rzeczywistym (LRCLIB API):**
-  - Automatyczne pobieranie tekstu w formacie LRC (`https://lrclib.net/api/get` z fallbackiem na wyszukiwarkę).
-  - Płynne autoscrollowanie do aktualnie śpiewanego wersu (styl Spotify / Apple Music).
-  - Podświetlenie aktualnej linijki i podgląd nadchodzących wersów.
-  - **Kliknięcie w wers przewija utwór** w Spotify do wskazanego momentu (`seek`).
+### Window Modes & Behavior
+* **Always on Top & Frameless:** Borderless transparent window with hardware-accelerated acrylic/glassmorphism blur (`backdrop-filter`).
+* **Collapsed Mode (104×104 px):** Compact corner icon displaying album artwork, a radial or linear progress ring, and playback controls. Resizing is locked while collapsed to prevent accidental layout breakage.
+* **Vinyl Disc Animation:** Optional spinning vinyl disc animation during playback. Controls stay upright and stationary on top of the spinning disc.
+* **Smart Expand / Collapse:**
+  * Expands on mouse hover (`mouseenter`) or click.
+  * Collapses automatically on mouse leave (`mouseleave`) with a configurable delay (default 380 ms).
+  * **Pin (📌):** Locks the window in expanded mode, ignoring hover leave events.
+* **Fluid Responsiveness & Memory:** Expanded window is freely resizable; album art maintains aspect ratio, and custom window dimensions persist in `localStorage`.
+* **Drag to Move:** Click and drag anywhere across the title bar or collapsed widget (`data-tauri-drag-region`). Image dragging is disabled globally to prevent ghosting.
+
+### Player & Playback Control
+* **Playback Controls:** Play, pause, skip forward, skip backward, shuffle toggle, repeat mode cycling (off / track / context), and volume slider.
+* **Live Seek Bar:** Interactive progress slider driven by `requestAnimationFrame` for 60 FPS smooth interpolation between Spotify API polling cycles.
+* **Spotify Connect Integration:** Commands execute via Spotify Web API against the currently active playback device.
+
+### User Playlists
+* **Dedicated Playlists Tab:** Access your Spotify library from the header icon or by clicking the album cover/vinyl disc on the player screen.
+* **Live Search Filter:** Instant client-side search filtering playlists by name and description.
+* **One-Click Playback:** Click any playlist card to immediately play it via `PUT /v1/me/player/play` (`context_uri`).
+* **Metadata & Ownership:** Displays cover thumbnails, track counts with grammatical formatting, and ownership tags (displaying "Ty" for your own playlists).
+
+### Synchronized Lyrics (LRCLIB)
+* **Real-Time Karaoke Scrolling:** Automatically fetches synchronized time-stamped `.lrc` lyrics from the LRCLIB API.
+* **Click-to-Seek:** Clicking any lyric line immediately jumps Spotify playback to that timestamp.
+* **Visual Focus:** Highlights the active line, dims surrounding text, and smooth-scrolls to keep the current verse centered.
+
+### Themes & Customization
+* **Background Engines:**
+  * **Canvas Particles:** Animated floating cosmic dust synchronized with playback tempo.
+  * **Animated GIF/Video:** Built-in offline animated loop presets with adjustable blur and opacity.
+  * **Aurora Gradient:** Radial multi-color gradient animation.
+  * **Glass / OLED:** Classic dark translucent acrylic or pitch-black OLED background.
+* **Accent Colors:** Custom color presets and hex picker with live CSS variable updates (`--accent-color`, `--accent-glow`).
+* **Collapsed Shapes:** Rounded square, circle, or capsule.
+* **Collapsed Progress Style:** Radial ring around artwork, bottom linear bar, or disabled.
+* **Animation Styles:** Spring, smooth, snappy, or bounce transitions with configurable collapse origin directions.
 
 ---
 
-## 🛠️ Wymagania i Konfiguracja Spotify
+## Prerequisites & Spotify Setup
 
-### 1. Rejestracja aplikacji w Spotify Developer Dashboard
-1. Zaloguj się na [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
-2. Kliknij **Create App**:
-   - **App name:** `Spotify Mini Player`
-   - **App description:** `Desktop Floating Overlay`
-   - **Redirect URI:** `http://127.0.0.1:8888/callback` *(ważne: użyj dokładnie adresu IP 127.0.0.1, Spotify odrzuca słowo "localhost")*
-   - **Which API/SDKs are you planning to use:** Wybierz **Web API**.
-3. Zapisz aplikację i skopiuj swój **Client ID**.
+### 1. Register Spotify Developer App
+1. Go to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) and log in.
+2. Click **Create App**:
+   * **App name:** `Spotify Mini Player`
+   * **App description:** `Desktop Floating Overlay`
+   * **Redirect URI:** `http://127.0.0.1:8888/callback` *(Must use `127.0.0.1`, not `localhost`)*
+   * **APIs used:** Select **Web API**.
+3. Save the application and copy the **Client ID**.
+
+### 2. Authorization & Scopes
+Authentication uses **OAuth 2.0 PKCE** (Proof Key for Code Exchange). An embedded Rust HTTP server runs on `127.0.0.1:8888` to receive the authorization code redirect automatically.
+
+Required scopes:
+* `user-read-playback-state`
+* `user-modify-playback-state`
+* `user-read-currently-playing`
+* `playlist-read-private`
+* `playlist-read-collaborative`
 
 ---
 
-## 🚀 Uruchomienie projektu
+## Installation & Running
 
-### Krok 1: Konfiguracja Client ID
-Możesz podać Client ID w pliku `.env`:
-```bash
-cp .env.example .env
+### Portable Executable (Windows)
+Run the precompiled standalone executable from the repository root:
+```text
+Spotify-Widget.exe
 ```
-Wpisz w `.env`:
-```env
-VITE_SPOTIFY_CLIENT_ID=twoj_spotify_client_id
-```
-*(Client ID możesz także w każdej chwili wpisać lub zmienić bezpośrednio w widżecie w oknie ustawień ⚙️).*
-
-## 🚀 Szybkie Uruchomienie (1-Click)
-
-W głównym folderze projektu znajduje się gotowy, skompilowany plik:
-👉 **`Spotify-Widget.exe`**
-
-Wystarczy kliknąć w niego **dwukrotnie** – aplikacja uruchamia się natychmiast bez otwierania terminala, bez instalacji czegokolwiek i bez serwerów deweloperskich.
+Requires [Microsoft Edge WebView2 Evergreen Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) (preinstalled on Windows 10/11).
 
 ---
 
-### Alternatywnie (dla programistów):
-Skorzystaj z przygotowanego skryptu startowego:
-```powershell
-# W konsoli PowerShell:
-.\run-widget.ps1
+### Development Setup
 
-# Lub w zwykłym wierszu poleceń (CMD):
-run-widget.bat
-```
-Możesz również uruchomić standardowo przez npm:
-```bash
-npm run tauri dev
-```
+#### System Requirements
+* **Node.js:** v18+ and `npm`
+* **Rust:** Stable toolchain (`rustc`, `cargo`)
+* **C++ Compiler:** MSVC (Visual Studio C++ Build Tools) or LLVM-MinGW
+
+#### Steps
+1. Clone repository and navigate to root:
+   ```bash
+   git clone https://github.com/your-username/spotify-widget.git
+   cd spotify-widget
+   ```
+2. Install frontend dependencies:
+   ```bash
+   npm install
+   ```
+3. (Optional) Set your Spotify Client ID in `.env`:
+   ```bash
+   cp .env.example .env
+   # Edit VITE_SPOTIFY_CLIENT_ID=your_client_id_here
+   ```
+   *Note: Client ID can also be entered directly in the app settings modal (⚙️).*
+4. Run in development mode:
+   ```bash
+   npm run tauri dev
+   ```
+5. Build production release binary:
+   ```bash
+   npm run tauri build
+   ```
+   The compiled binary is output to `src-tauri/target/release/spotify-widget.exe`.
 
 ---
 
-## ⌨️ Sterowanie i Interakcja
+## Controls & Shortcuts
 
-| Akcja | Sterowanie |
+| Action | Control |
 | :--- | :--- |
-| **Rozwinięcie widżetu** | Najedź kursorem myszy na widżet |
-| **Zwinięcie widżetu** | Odsuń kursor poza widżet (zwinie się po 380ms) |
-| **Przypięcie (Pin)** | Kliknij ikonę pinezki 📌 w prawym górnym rogu |
-| **Przesuwanie okna** | Chwyć nagłówek lub widżet i przeciągnij w dowolne miejsce |
-| **Przewijanie utworu** | Kliknij w dowolne miejsce paska postępu lub na dowolny wers w sekcji Lyrics |
-| **Przełączanie zakładek** | Kliknij ikonę płyty (odtwarzacz) lub mikrofonu (tekst) w nagłówku |
-| **Ustawienia API** | Kliknij ikonę zębatki ⚙️ w prawym górnym rogu |
+| **Expand Widget** | Hover cursor over the collapsed widget or click it |
+| **Collapse Widget** | Move cursor outside the expanded player (collapses after 380 ms) |
+| **Pin / Unpin (Lock)** | Click the pin icon (📌) in the top header |
+| **Open Playlists View** | Click the playlist tab icon in header or click the album cover/vinyl disc |
+| **Search Playlists** | Type in the search bar on the playlists tab to filter instantly |
+| **Switch to Lyrics** | Click the microphone icon (🎤) in the header |
+| **Seek in Track** | Click on the playback progress bar or click any lyric line |
+| **Move Window** | Click and drag the header or the collapsed widget |
+| **Resize Window** | Drag any window border or corner when expanded |
+| **Settings & Auth** | Click the gear icon (⚙️) in the top header |
+| **Close App** | Click the exit button (✕) in the top header |
 
 ---
 
-## 🏗️ Architektura kodu
+## Project Structure
 
-- `src-tauri/` - Natywny backend w Rust (Tauri v2):
-  - `src/main.rs` - Konfiguracja okna, frameless/transparency/always-on-top, komendy resize oraz wbudowany serwer HTTP na porcie 8888 do bezobsługowego odbioru kodu OAuth PKCE.
-  - `tauri.conf.json` & `capabilities/` - Uprawnienia okna i obsługa zdarzeń.
-- `src/` - Frontend (React + TypeScript + Tailwind CSS):
-  - `components/CollapsedWidget.tsx` - Dyskretny tryb zwinięty z radialnym progress barem i hover controls.
-  - `components/ExpandedPlayer.tsx` - Pełny odtwarzacz ze wszystkimi kontrolkami, seekbarem i widokiem tekstu.
-  - `components/LyricsView.tsx` - Synchronizowane napisy z LRCLIB, auto-scroll i seek-on-click.
-  - `components/SettingsModal.tsx` - Konfiguracja Spotify Client ID, logowanie PKCE i pomoc w autoryzacji.
-  - `services/spotifyAuth.ts` - Pełna implementacja OAuth 2.0 PKCE (code_verifier, code_challenge S256, auto refresh tokenów).
-  - `services/spotifyApi.ts` - Klient Spotify Connect (play, pause, next, prev, seek, volume, shuffle, repeat).
-  - `services/lyricsService.ts` - Klient LRCLIB i parser formatu LRC `[mm:ss.xx]`.
-  - `hooks/` - Dedykowane hooki: `useWindowControl`, `useSpotifyPlayer`, `useSpotifyAuth`, `useLyrics`.
+```text
+├── src/                          # React Frontend
+│   ├── components/
+│   │   ├── CollapsedWidget.tsx   # 104x104 collapsed widget, radial bar, hover controls
+│   │   ├── ExpandedPlayer.tsx    # Full player view, header tabs, aspect-ratio cover
+│   │   ├── LyricsView.tsx        # LRCLIB synchronized lyrics list, auto-scrolling
+│   │   ├── PlaylistsView.tsx     # User playlist catalog, live search, context playback
+│   │   ├── SettingsModal.tsx     # Client ID, OAuth login, customization preferences
+│   │   └── ParticlesBackground.tsx # Canvas cosmic particles engine
+│   ├── hooks/
+│   │   ├── useSpotifyAuth.ts     # PKCE login lifecycle and token state
+│   │   ├── useSpotifyPlayer.ts   # Playback polling, seek, and control mutations
+│   │   ├── useLyrics.ts          # LRCLIB API query, parsing, and time alignment
+│   │   ├── useWindowControl.ts   # Hover expand/collapse, pinning, size persistence
+│   │   └── useCustomization.ts   # Themes, colors, animations storage
+│   ├── services/
+│   │   ├── spotifyAuth.ts        # PKCE challenge generator, token refresh, redirect
+│   │   ├── spotifyApi.ts         # REST client for Spotify Web API (/me, /player, /playlists)
+│   │   └── lyricsService.ts      # LRCLIB fetch and [mm:ss.xx] parser
+│   ├── types/                    # TypeScript interfaces for Spotify, lyrics, and settings
+│   ├── index.css                 # Tailwind utilities, acrylic glass, animations
+│   └── App.tsx                   # Root state orchestration and Tauri event bindings
+├── src-tauri/                    # Tauri v2 Backend (Rust)
+│   ├── src/
+│   │   └── main.rs               # Frameless window setup, resize commands, OAuth server
+│   ├── capabilities/             # Tauri security capabilities and plugin permissions
+│   ├── Cargo.toml                # Rust dependencies (tauri, tiny_http, serde)
+│   └── tauri.conf.json           # Window dimensions, transparency, build configuration
+├── Spotify-Widget.exe            # Precompiled standalone Windows executable
+└── package.json                  # NPM scripts and frontend dependencies
+```
 
 ---
 
-## 📄 Licencja
+## License
 
-Projekt objęty licencją MIT.
+This project is open source and available under the [MIT License](LICENSE).
