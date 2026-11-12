@@ -110,7 +110,11 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
     }
   };
 
+  const isVinyl = !!customization?.albumArtSpin;
+
   const getAlbumArtRadius = () => {
+    // When vinyl spin is enabled, ALWAYS make it a circle!
+    if (isVinyl) return "rounded-full";
     switch (customization?.albumArtRadius) {
       case "circle":
         return "rounded-full";
@@ -310,17 +314,22 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
               {/* Optional ambient colorful glow behind album art */}
               {customization?.albumArtGlow && (
                 <div
-                  className="absolute inset-0 blur-2xl opacity-40 rounded-full transition-all duration-700 pointer-events-none"
+                  className="absolute inset-0 blur-2xl opacity-45 rounded-full transition-all duration-700 pointer-events-none"
                   style={{
                     backgroundColor: "var(--accent-color)",
-                    transform: isPlaying ? "scale(1.2)" : "scale(0.9)",
+                    transform: isPlaying ? "scale(1.25)" : "scale(0.9)",
                   }}
                 />
               )}
 
+              {/* Album Artwork or Vinyl Disc */}
               <div
-                className={`relative w-full h-full overflow-hidden shadow-2xl border border-white/10 bg-zinc-900 ${getAlbumArtRadius()} ${
-                  customization?.albumArtSpin && isPlaying ? "animate-vinyl-spin" : ""
+                className={`relative w-full h-full overflow-hidden shadow-2xl transition-all duration-500 bg-zinc-950 ${getAlbumArtRadius()} ${
+                  isVinyl
+                    ? `border-4 border-zinc-900 shadow-[0_12px_32px_rgba(0,0,0,0.85)] ${
+                        isPlaying ? "animate-vinyl-spin" : ""
+                      }`
+                    : "border border-white/10"
                 }`}
               >
                 {albumArt ? (
@@ -328,7 +337,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                     src={albumArt}
                     alt={currentTrack.name}
                     className={`w-full h-full object-cover transition-transform duration-700 ${
-                      !customization?.albumArtSpin ? "group-hover/art:scale-105" : ""
+                      !isVinyl ? "group-hover/art:scale-105" : ""
                     }`}
                   />
                 ) : (
@@ -336,10 +345,22 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
                     <Music2 className="w-12 h-12 text-white/20" />
                   </div>
                 )}
+
+                {/* Vinyl Grooves & Concentric Reflection Effect */}
+                {isVinyl && (
+                  <div
+                    className="absolute inset-0 rounded-full pointer-events-none border border-white/10"
+                    style={{
+                      background:
+                        "radial-gradient(circle, transparent 25%, rgba(255,255,255,0.06) 27%, transparent 29%, transparent 42%, rgba(255,255,255,0.05) 44%, transparent 46%, transparent 64%, rgba(255,255,255,0.04) 66%, transparent 68%)",
+                    }}
+                  />
+                )}
+
                 {/* Center vinyl spindle dot if spin is active */}
-                {customization?.albumArtSpin && (
-                  <div className="absolute inset-0 m-auto w-6 h-6 rounded-full bg-zinc-950 border-2 border-white/20 shadow-inner flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                {isVinyl && (
+                  <div className="absolute inset-0 m-auto w-7 h-7 rounded-full bg-zinc-950 border-2 border-zinc-700/80 shadow-[0_0_10px_rgba(0,0,0,0.8)] flex items-center justify-center pointer-events-none">
+                    <div className="w-2 h-2 rounded-full bg-zinc-300 shadow-sm" />
                   </div>
                 )}
               </div>

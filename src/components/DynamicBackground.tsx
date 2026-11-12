@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AppCustomization } from "../types";
 
 interface DynamicBackgroundProps {
@@ -6,15 +6,52 @@ interface DynamicBackgroundProps {
   isPlaying?: boolean;
 }
 
+function isVideoSource(url: string, bgType?: string): boolean {
+  if (bgType === "video") return true;
+  if (!url) return false;
+  const lower = url.toLowerCase().trim();
+  return (
+    lower.startsWith("data:video/") ||
+    lower.startsWith("blob:") && bgType === "video" ||
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".ogg") ||
+    lower.endsWith(".mov") ||
+    lower.includes(".mp4?") ||
+    lower.includes(".webm?")
+  );
+}
+
 export const DynamicBackground: React.FC<DynamicBackgroundProps> = ({
   customization,
   isPlaying = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [mediaError, setMediaError] = useState(false);
+
+  const { bgType, customBgUrl, customBgDim, customBgBlur } = customization;
+  const isVideo = isVideoSource(customBgUrl, bgType);
+
+  // Reset error when URL changes
+  useEffect(() => {
+    setMediaError(false);
+  }, [customBgUrl, bgType]);
+
+  // Video autoplay helper
+  useEffect(() => {
+    if (isVideo && videoRef.current) {
+      videoRef.current.defaultMuted = true;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch((err) => {
+        console.warn("Autoplay was prevented:", err);
+      });
+    }
+  }, [isVideo, customBgUrl]);
 
   // Canvas particle starfield animation for 'particles' bgType
   useEffect(() => {
-    if (customization.bgType !== "particles") return;
+    if (bgType !== "particles") return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -36,7 +73,7 @@ export const DynamicBackground: React.FC<DynamicBackgroundProps> = ({
       fadeSpeed: number;
     }[] = [];
 
-    const numParticles = 48;
+    const numParticles = 45;
     for (let i = 0; i < numParticles; i++) {
       particles.push({
         x: Math.random() * width,
@@ -51,7 +88,6 @@ export const DynamicBackground: React.FC<DynamicBackgroundProps> = ({
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
-
       const accent = customization.accentColor || "#1DB954";
 
       particles.forEach((p) => {
@@ -97,37 +133,42 @@ export const DynamicBackground: React.FC<DynamicBackgroundProps> = ({
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
     };
-  }, [customization.bgType, customization.accentColor, isPlaying]);
+  }, [bgType, customization.accentColor, isPlaying]);
 
-  const { bgType, customBgUrl, customBgDim, customBgBlur } = customization;
+  const hasCustomMedia = (bgType === "image" || bgType === "video") && !!customBgUrl && !mediaError;
 
   return (
-    <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden z-0">
-      {/* 1. Custom Image / GIF */}
-      {bgType === "image" && customBgUrl && (
-        <img
-          src={customBgUrl}
-          alt="Custom Background"
-          className="absolute inset-0 w-full h-full object-cover transition-all duration-500"
-          style={{
-            filter: `blur(${customBgBlur}px)`,
-            transform: "scale(1.08)", // avoid blur clipping at edges
-          }}
-        />
-      )}
-
-      {/* 2. Custom Video */}
-      {bgType === "video" && customBgUrl && (
+    <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden z-0 rounded-3xl">
+      {/* 1. Custom Video Background */}
+      {hasCustomMedia && isVideo && (
         <video
+          ref={videoRef}
+          key={customBgUrl}
           src={customBgUrl}
           autoPlay
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover transition-all duration-500"
+          onError={() => setMediaError(true)}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
           style={{
             filter: `blur(${customBgBlur}px)`,
-            transform: "scale(1.08)",
+            transform: "scale(1.1)", // avoids edge clipping when blur is applied
+          }}
+        />
+      )}
+
+      {/* 2. Custom Image / GIF Background */}
+      {hasCustomMedia && !isVideo && (
+        <img
+          key={customBgUrl}
+          src={customBgUrl}
+          alt="Custom Background"
+          onError={() => setMediaError(true)}
+          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
+          style={{
+            filter: `blur(${customBgBlur}px)`,
+            transform: "scale(1.1)",
           }}
         />
       )}
@@ -162,7 +203,7 @@ export const DynamicBackground: React.FC<DynamicBackgroundProps> = ({
       )}
 
       {/* Dark Overlay Dimmer (Ensures all UI text remains legible) */}
-      {(bgType === "image" || bgType === "video" || bgType === "aurora" || bgType === "mesh") && (
+      {(hasCustomMedia || bgType === "aurora" || bgType === "mesh") && (
         <div
           className="absolute inset-0 bg-black transition-opacity duration-300"
           style={{ opacity: customBgDim / 100 }}

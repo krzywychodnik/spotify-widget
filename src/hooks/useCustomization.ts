@@ -58,7 +58,17 @@ export function useCustomization() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch (e) {
-        console.warn("Failed to save customization to localStorage", e);
+        // If quota exceeded (e.g. large file upload), preserve other settings by omitting heavy data url
+        try {
+          const safeCopy = {
+            ...next,
+            customBgUrl: next.customBgUrl?.startsWith("data:") ? "" : next.customBgUrl,
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(safeCopy));
+        } catch {
+          // ignore
+        }
+        console.warn("Storage quota exceeded, preserving in memory:", e);
       }
       return next;
     });

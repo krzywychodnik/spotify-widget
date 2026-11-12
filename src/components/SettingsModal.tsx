@@ -13,6 +13,7 @@ import {
   Image,
   Upload,
   Disc,
+  Trash2,
 } from "lucide-react";
 import { REDIRECT_URI } from "../services/spotifyAuth";
 import {
@@ -50,28 +51,45 @@ const COLOR_PRESETS = [
   { name: "Arktyczna Biel", color: "#FFFFFF" },
 ];
 
-const PRESET_BACKGROUNDS = [
+const ANIME_GIF_PRESETS = [
   {
-    name: "Cyberpunk City (GIF)",
-    type: "image" as BackgroundType,
-    url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHoxbXBzZTVuMnpoazB1ZmxzOTg5dzhzMW1qY2lhcmg1a2l1aWpjeSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3oEjI6SIIHBdRxXI40/giphy.gif",
+    name: "Lofi Girl (Słuchawki)",
+    url: "https://i.giphy.com/media/LmNwrBhejkK9EFP504/giphy.gif",
   },
   {
-    name: "Lo-Fi Rainy Window (GIF)",
-    type: "image" as BackgroundType,
-    url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExenBhNWV1bXlsM3A3dDZyYms0NWlndnh1M2F1cW96czFpOXV1OHlydSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/t7Qb8655Z1V9K/giphy.gif",
+    name: "Deszcz za oknem pociągu",
+    url: "https://i.giphy.com/media/l0HlVJm3xsf4Av1m0/giphy.gif",
   },
   {
-    name: "Retro Sunset Synthwave",
-    type: "image" as BackgroundType,
-    url: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMDV4bnNsaHR5ZmVrcTJ3dmp5aHlsYmRycHVmYzU5MnAzZ3FnbHlvdSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/26tn33aiTi1jkl6H6/giphy.gif",
+    name: "Anime Synthwave Drive",
+    url: "https://i.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif",
   },
   {
-    name: "Deep Cosmic Galaxy",
-    type: "image" as BackgroundType,
-    url: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=800&auto=format&fit=crop",
+    name: "Przytulny pokój z kotem",
+    url: "https://i.giphy.com/media/du3J3cXyzhj75IOgvA/giphy.gif",
+  },
+  {
+    name: "Gwiaździste nocne niebo",
+    url: "https://i.giphy.com/media/l41lFw057lAJQMwg0/giphy.gif",
+  },
+  {
+    name: "Światła Tokio w deszczu",
+    url: "https://i.giphy.com/media/M9gbBd9nbDrOTu1Mqx/giphy.gif",
   },
 ];
+
+function isVideoSource(url: string): boolean {
+  if (!url) return false;
+  const lower = url.toLowerCase().trim();
+  return (
+    lower.startsWith("data:video/") ||
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".webm") ||
+    lower.endsWith(".mov") ||
+    lower.includes(".mp4?") ||
+    lower.includes(".webm?")
+  );
+}
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
@@ -94,6 +112,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [manualCode, setManualCode] = useState("");
   const [customUrlInput, setCustomUrlInput] = useState(customization.customBgUrl || "");
   const [copiedRedirect, setCopiedRedirect] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
 
   if (!isOpen) return null;
 
@@ -111,9 +130,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const isVideo = file.type.startsWith("video/");
-    const reader = new FileReader();
+    const lowerName = file.name.toLowerCase();
+    const isVideo =
+      file.type.startsWith("video/") ||
+      lowerName.endsWith(".mp4") ||
+      lowerName.endsWith(".webm") ||
+      lowerName.endsWith(".mov");
 
+    const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       if (dataUrl) {
@@ -121,18 +145,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           bgType: isVideo ? "video" : "image",
           customBgUrl: dataUrl,
         });
-        setCustomUrlInput(dataUrl.slice(0, 40) + "...");
+        setCustomUrlInput(file.name);
+        setUploadSuccess(true);
+        setTimeout(() => setUploadSuccess(false), 3000);
       }
     };
 
     reader.readAsDataURL(file);
   };
 
-  const handleApplyCustomUrl = (type: BackgroundType) => {
+  const handleApplyUrl = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    const isVideo = isVideoSource(trimmed);
     onUpdateCustomization({
-      bgType: type,
-      customBgUrl: customUrlInput.trim(),
+      bgType: isVideo ? "video" : "image",
+      customBgUrl: trimmed,
     });
+    setUploadSuccess(true);
+    setTimeout(() => setUploadSuccess(false), 2500);
+  };
+
+  const handleClearBackground = () => {
+    onUpdateCustomization({
+      bgType: "preset",
+      customBgUrl: "",
+    });
+    setCustomUrlInput("");
   };
 
   const handleProcessManualCode = () => {
@@ -228,29 +267,121 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto space-y-4 pr-1 lyrics-scroll-container">
-          {/* TAB 1: BACKGROUNDS & MEDIA (ZDJĘCIA, WIDEO, GIF, ANIMACJE) */}
+          {/* TAB 1: BACKGROUNDS & MEDIA (ZDJĘCIA, WIDEO, GIF, ANIME) */}
           {activeTab === "backgrounds" && (
             <div className="space-y-4 text-xs">
-              {/* Wybór Typu Tła */}
+              {/* Sekcja: Własne Zdjęcie / Wideo / GIF */}
+              <div className="space-y-2 bg-black/35 p-3 rounded-2xl border border-white/5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-semibold text-white/90 block">
+                    Własne tło (Zdjęcie, GIF lub Wideo MP4)
+                  </label>
+                  {customization.customBgUrl && (
+                    <button
+                      onClick={handleClearBackground}
+                      className="flex items-center gap-1 text-[10px] text-red-400 hover:text-red-300 transition"
+                      title="Usuń własne tło i wróć do szkła"
+                    >
+                      <Trash2 className="w-3 h-3" /> Usuń
+                    </button>
+                  )}
+                </div>
+
+                {/* File Upload Button */}
+                <label className="w-full py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-dashed border-white/20 flex items-center justify-center gap-2 cursor-pointer transition text-[11px] text-white/80 hover:text-white shadow-sm">
+                  <Upload className="w-3.5 h-3.5" style={{ color: "var(--accent-color)" }} />
+                  <span>Wybierz zdjęcie / GIF / wideo z komputera</span>
+                  <input
+                    type="file"
+                    accept="image/*,video/mp4,video/webm,.gif"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* URL Input */}
+                <div className="space-y-1 pt-1">
+                  <div className="flex gap-1.5">
+                    <input
+                      type="text"
+                      value={customUrlInput}
+                      onChange={(e) => setCustomUrlInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleApplyUrl(customUrlInput);
+                      }}
+                      placeholder="Lub wklej bezpośredni adres URL..."
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1.5 text-[11px] text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent-color)]"
+                    />
+                    <button
+                      onClick={() => handleApplyUrl(customUrlInput)}
+                      className="px-3 py-1.5 rounded-xl text-[11px] font-semibold text-white transition active:scale-95 bg-white/10 hover:bg-white/20"
+                    >
+                      Zastosuj
+                    </button>
+                  </div>
+                </div>
+
+                {/* Success indicator */}
+                {uploadSuccess && (
+                  <div className="flex items-center gap-1.5 text-[11px] text-[var(--accent-color)] font-medium">
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Tło zostało ustawione pomyślnie!</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Sekcja: Gotowe Anime GIFy */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-semibold text-white/80 block">
+                  Gotowe Anime GIFy (1-Kliknięcie)
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {ANIME_GIF_PRESETS.map((p) => {
+                    const isActive = customization.customBgUrl === p.url;
+                    return (
+                      <button
+                        key={p.name}
+                        onClick={() => {
+                          onUpdateCustomization({
+                            bgType: "image",
+                            customBgUrl: p.url,
+                          });
+                          setCustomUrlInput(p.url);
+                          setUploadSuccess(true);
+                          setTimeout(() => setUploadSuccess(false), 2000);
+                        }}
+                        className={`py-2 px-2.5 rounded-xl border text-[10px] text-left transition flex items-center justify-between ${
+                          isActive
+                            ? "border-[var(--accent-color)] bg-white/15 text-white font-bold"
+                            : "border-white/5 bg-black/25 text-white/70 hover:text-white hover:bg-white/10"
+                        }`}
+                      >
+                        <span className="truncate">{p.name}</span>
+                        {isActive && <Check className="w-3 h-3 text-[var(--accent-color)] shrink-0 ml-1" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Sekcja: Tła proceduralne & Szkło */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Typ tła
+                  Efekty świetlne i motyw szkła
                 </label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(
                     [
-                      { id: "preset", label: "Domyślne szkło" },
+                      { id: "preset", label: "Czyste szkło" },
                       { id: "aurora", label: "Cyber Zorza" },
                       { id: "particles", label: "Gwiezdny pył" },
                       { id: "mesh", label: "Mesh Gradient" },
-                      { id: "image", label: "Zdjęcie / GIF" },
-                      { id: "video", label: "Wideo MP4" },
                     ] as { id: BackgroundType; label: string }[]
                   ).map((bg) => (
                     <button
                       key={bg.id}
                       onClick={() => onUpdateCustomization({ bgType: bg.id })}
-                      className={`py-2 px-1.5 rounded-xl text-[10px] font-medium border text-center transition flex flex-col items-center justify-center gap-1 ${
+                      className={`py-1.5 px-1.5 rounded-xl text-[10px] font-medium border text-center transition ${
                         customization.bgType === bg.id
                           ? "border-[var(--accent-color)] bg-white/15 text-white font-bold shadow-sm"
                           : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
@@ -262,12 +393,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Jeśli wybrano Domyślne Szkło: Motywy */}
+              {/* Jeśli wybrano Domyślne Szkło: Styl */}
               {customization.bgType === "preset" && (
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-semibold text-white/80 block">
-                    Motyw szkła
-                  </label>
                   <div className="grid grid-cols-2 gap-1.5">
                     {(
                       [
@@ -293,82 +421,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               )}
 
-              {/* Jeśli wybrano Własne Zdjęcie / GIF / Wideo */}
-              {(customization.bgType === "image" || customization.bgType === "video") && (
-                <div className="space-y-3 bg-black/30 p-3 rounded-2xl border border-white/5">
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-white/80 flex items-center justify-between">
-                      <span>Wklej URL lub załaduj z dysku</span>
-                      <span className="text-[10px] text-white/40">
-                        {customization.bgType === "video" ? "Wideo (MP4 / WebM)" : "Zdjęcie / GIF"}
-                      </span>
-                    </label>
-
-                    {/* URL Input */}
-                    <div className="flex gap-1.5">
-                      <input
-                        type="text"
-                        value={customUrlInput}
-                        onChange={(e) => setCustomUrlInput(e.target.value)}
-                        placeholder="https://... (.gif, .mp4, .jpg)"
-                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1 text-[11px] text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent-color)]"
-                      />
-                      <button
-                        onClick={() => handleApplyCustomUrl(customization.bgType)}
-                        className="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-xl text-[11px] font-semibold text-white transition active:scale-95"
-                      >
-                        Ustaw
-                      </button>
-                    </div>
-
-                    {/* Local File Picker */}
-                    <label className="mt-1.5 w-full py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-dashed border-white/20 flex items-center justify-center gap-2 cursor-pointer transition text-[11px] text-white/70 hover:text-white">
-                      <Upload className="w-3.5 h-3.5" style={{ color: "var(--accent-color)" }} />
-                      <span>Wybierz plik z komputera</span>
-                      <input
-                        type="file"
-                        accept={
-                          customization.bgType === "video"
-                            ? "video/mp4,video/webm"
-                            : "image/*,.gif"
-                        }
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-
-                  {/* Szybkie Presety Tła (Gotowe do 1-kliknięcia) */}
-                  <div className="space-y-1.5 pt-1 border-t border-white/5">
-                    <span className="text-[10px] text-white/50 block font-semibold">
-                      Gotowe estetyczne tła:
-                    </span>
-                    <div className="grid grid-cols-2 gap-1">
-                      {PRESET_BACKGROUNDS.map((p) => (
-                        <button
-                          key={p.name}
-                          onClick={() => {
-                            onUpdateCustomization({
-                              bgType: p.type,
-                              customBgUrl: p.url,
-                            });
-                            setCustomUrlInput(p.url);
-                          }}
-                          className="py-1 px-2 rounded-lg bg-black/40 hover:bg-white/10 border border-white/5 text-[10px] text-left text-white/70 truncate transition"
-                        >
-                          {p.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Przyciemnienie tła i Rozmycie (Dla custom mediów i animacji) */}
+              {/* Przyciemnienie tła i Rozmycie */}
               <div className="space-y-2.5 bg-black/20 p-2.5 rounded-2xl border border-white/5">
                 <div className="space-y-1">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-white/70">Przyciemnienie tła (dla czytelności):</span>
+                    <span className="text-white/70">Przyciemnienie tła (czytelność):</span>
                     <span className="font-mono text-white/90 font-bold">
                       {customization.customBgDim}%
                     </span>
@@ -410,7 +467,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {/* Styl Ramki Widgetu */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
-                  Styl obramowania widgetu
+                  Styl ramki widgetu
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   {(
@@ -608,7 +665,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </span>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-white/70">Obracanie płyty winylowej</span>
+                  <div>
+                    <span className="text-[11px] text-white/90 font-medium block">
+                      Obracanie płyty winylowej
+                    </span>
+                    <span className="text-[10px] text-white/40 block">
+                      Zmienia okładkę w obracający się okrągły winyl
+                    </span>
+                  </div>
                   <input
                     type="checkbox"
                     checked={customization.albumArtSpin}
@@ -617,8 +681,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   />
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                  <span className="text-[11px] text-white/70">Poświata za okładką (Ambient Glow)</span>
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <span className="text-[11px] text-white/70">Poświata wokół okładki (Ambient Glow)</span>
                   <input
                     type="checkbox"
                     checked={customization.albumArtGlow}
@@ -627,7 +691,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   />
                 </div>
 
-                <div className="flex items-center justify-between pt-1 border-t border-white/5">
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
                   <span className="text-[11px] text-white/70">Animowany korektor (EQ Visualizer)</span>
                   <input
                     type="checkbox"

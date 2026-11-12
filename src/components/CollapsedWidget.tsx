@@ -25,24 +25,25 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
   customization,
 }) => {
   const albumArt = currentTrack?.album?.images?.[0]?.url;
+  const isVinyl = !!customization?.albumArtSpin;
 
   const getShapeClasses = () => {
     switch (collapsedShape) {
       case "circle":
         return {
           wrapper: "rounded-full",
-          inner: "rounded-full",
+          inner: isVinyl ? "rounded-full" : "rounded-full",
         };
       case "capsule":
         return {
           wrapper: "rounded-[26px]",
-          inner: "rounded-[22px]",
+          inner: isVinyl ? "rounded-full" : "rounded-[22px]",
         };
       case "rounded-square":
       default:
         return {
           wrapper: "rounded-2xl",
-          inner: "rounded-xl",
+          inner: isVinyl ? "rounded-full" : "rounded-xl",
         };
     }
   };
@@ -83,24 +84,29 @@ export const CollapsedWidget: React.FC<CollapsedWidgetProps> = ({
         />
       </svg>
 
-      {/* Album Artwork or placeholder */}
+      {/* Album Artwork or Vinyl Disc */}
       <div
-        className={`relative w-16 h-16 overflow-hidden shadow-md flex items-center justify-center bg-zinc-900 border border-white/10 z-10 ${shape.inner}`}
+        className={`relative w-16 h-16 overflow-hidden shadow-md flex items-center justify-center bg-zinc-950 border border-white/10 z-10 ${
+          shape.inner
+        } ${isVinyl && isPlaying ? "animate-vinyl-spin" : ""}`}
       >
         {albumArt ? (
           <img
             src={albumArt}
             alt={currentTrack?.name || "Album cover"}
             className={`w-full h-full object-cover transition-transform duration-500 ${
-              customization?.albumArtSpin && isPlaying
-                ? "animate-vinyl-spin"
-                : isPlaying
-                ? "scale-105"
-                : "scale-100 opacity-80"
+              isPlaying && !isVinyl ? "scale-105" : "scale-100 opacity-90"
             }`}
           />
         ) : (
           <Music2 className="w-7 h-7 text-white/30 animate-pulse" />
+        )}
+
+        {/* Vinyl center pin */}
+        {isVinyl && (
+          <div className="absolute inset-0 m-auto w-3.5 h-3.5 rounded-full bg-zinc-950 border border-white/40 shadow-inner flex items-center justify-center">
+            <div className="w-1 h-1 rounded-full bg-white/60" />
+          </div>
         )}
 
         {/* Hover overlay with miniature controls */}
