@@ -11,6 +11,8 @@ import {
   Sliders,
   RotateCcw,
   SlidersHorizontal,
+  Wand2,
+  Star,
 } from "lucide-react";
 import { REDIRECT_URI } from "../services/spotifyAuth";
 import {
@@ -38,6 +40,135 @@ interface SettingsModalProps {
   onUpdateCustomization: (updates: Partial<AppCustomization>) => void;
   onResetCustomization: () => void;
 }
+
+interface ThemePreset {
+  id: string;
+  name: string;
+  desc: string;
+  accentColor: string;
+  badge?: string;
+  isAuthorFav?: boolean;
+  settings: Partial<AppCustomization>;
+}
+
+const THEME_PRESETS: ThemePreset[] = [
+  {
+    id: "author-mocha",
+    name: "Mocha Autora",
+    desc: "Ciepły brąz & szkło akrylowe",
+    accentColor: "#6F4A16",
+    badge: "Ulubiony",
+    isAuthorFav: true,
+    settings: {
+      accentColor: "#6F4A16",
+      bgTheme: "glass",
+      bgOpacity: 88,
+      bgBlur: 24,
+      collapsedShape: "circle",
+      animationType: "spring",
+      albumArtSpin: true,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "accent-gradient",
+    },
+  },
+  {
+    id: "spotify-classic",
+    name: "Spotify Classic",
+    desc: "Głęboki OLED & neonowa zieleń",
+    accentColor: "#1DB954",
+    badge: "Klasyk",
+    settings: {
+      accentColor: "#1DB954",
+      bgTheme: "oled",
+      bgOpacity: 96,
+      bgBlur: 10,
+      collapsedShape: "rounded-square",
+      animationType: "fade-zoom",
+      albumArtSpin: false,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "spotify-glow",
+    },
+  },
+  {
+    id: "cyber-neon",
+    name: "Cyber Neon",
+    desc: "Dynamiczna zorza & cyber fiolet",
+    accentColor: "#A855F7",
+    badge: "Cyber",
+    settings: {
+      accentColor: "#A855F7",
+      bgTheme: "aurora",
+      bgOpacity: 80,
+      bgBlur: 20,
+      collapsedShape: "rounded-square",
+      animationType: "elastic",
+      albumArtSpin: true,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "accent-gradient",
+    },
+  },
+  {
+    id: "aqua-frost",
+    name: "Aqua Minimal",
+    desc: "Mroźne szkło & błękitna kapsułka",
+    accentColor: "#06B6D4",
+    badge: "Minimal",
+    settings: {
+      accentColor: "#06B6D4",
+      bgTheme: "frosted",
+      bgOpacity: 75,
+      bgBlur: 28,
+      collapsedShape: "capsule",
+      animationType: "slide",
+      albumArtSpin: false,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "spotify-glow",
+    },
+  },
+  {
+    id: "sunset-amber",
+    name: "Sunset Amber",
+    desc: "Gwiezdny pył & złoty zachód",
+    accentColor: "#F59E0B",
+    badge: "Ciepły",
+    settings: {
+      accentColor: "#F59E0B",
+      bgTheme: "particles",
+      bgOpacity: 85,
+      bgBlur: 25,
+      collapsedShape: "circle",
+      animationType: "fold",
+      albumArtSpin: true,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "accent-gradient",
+    },
+  },
+  {
+    id: "sakura-lofi",
+    name: "Lofi Sakura",
+    desc: "Klimatyczny Lofi GIF & róż",
+    accentColor: "#F43F5E",
+    badge: "Lofi",
+    settings: {
+      accentColor: "#F43F5E",
+      bgTheme: "gif",
+      activeGif: "lofi-girl-4",
+      bgOpacity: 85,
+      bgBlur: 8,
+      collapsedShape: "rounded-square",
+      animationType: "fade-zoom",
+      albumArtSpin: true,
+      albumArtGlow: true,
+      showVisualizer: true,
+      activeLyricStyle: "spotify-glow",
+    },
+  },
+];
 
 const COLOR_PRESETS = [
   {
@@ -109,8 +240,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/75 backdrop-blur-md select-none animate-fadeIn">
-      <div className="w-full max-w-[340px] max-h-[520px] rounded-2xl glass-panel p-4 text-white shadow-2xl border border-white/10 flex flex-col gap-3 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-md select-none animate-fadeIn">
+      <div className="w-full max-w-[94%] sm:max-w-[430px] max-h-[92%] sm:max-h-[560px] h-full sm:h-auto rounded-2xl glass-panel p-3.5 sm:p-4 text-white shadow-2xl border border-white/10 flex flex-col gap-3 overflow-hidden">
         {/* Header with Close */}
         <div className="flex items-center justify-between border-b border-white/10 pb-2.5 shrink-0">
           <div className="flex items-center gap-2">
@@ -120,59 +251,193 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <button
             onClick={onClose}
             className="p-1 rounded-full text-white/60 hover:text-white hover:bg-white/10 transition"
+            title="Zamknij"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Tab Navigation (Original 3-tab layout) */}
+        {/* Tab Navigation */}
         <div className="grid grid-cols-3 gap-1 bg-black/40 p-1 rounded-xl border border-white/5 shrink-0">
           <button
             onClick={() => setActiveTab("appearance")}
-            className={`py-1.5 px-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 sm:px-2 rounded-lg text-[10.5px] sm:text-[11px] font-semibold transition flex items-center justify-center gap-1.5 truncate ${
               activeTab === "appearance"
                 ? "bg-white/15 text-white shadow-sm"
                 : "text-white/40 hover:text-white/70"
             }`}
           >
-            <Palette className="w-3 h-3" style={activeTab === "appearance" ? { color: "var(--accent-color)" } : {}} />
-            Wygląd
+            <Palette className="w-3 h-3 shrink-0" style={activeTab === "appearance" ? { color: "var(--accent-color)" } : {}} />
+            <span>Wygląd</span>
           </button>
           <button
             onClick={() => setActiveTab("interaction")}
-            className={`py-1.5 px-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 sm:px-2 rounded-lg text-[10.5px] sm:text-[11px] font-semibold transition flex items-center justify-center gap-1.5 truncate ${
               activeTab === "interaction"
                 ? "bg-white/15 text-white shadow-sm"
                 : "text-white/40 hover:text-white/70"
             }`}
           >
-            <SlidersHorizontal className="w-3 h-3" style={activeTab === "interaction" ? { color: "var(--accent-color)" } : {}} />
-            Sterowanie
+            <SlidersHorizontal className="w-3 h-3 shrink-0" style={activeTab === "interaction" ? { color: "var(--accent-color)" } : {}} />
+            <span>Sterowanie</span>
           </button>
           <button
             onClick={() => setActiveTab("spotify")}
-            className={`py-1.5 px-1.5 rounded-lg text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 sm:px-2 rounded-lg text-[10.5px] sm:text-[11px] font-semibold transition flex items-center justify-center gap-1.5 truncate ${
               activeTab === "spotify"
                 ? "bg-white/15 text-white shadow-sm"
                 : "text-white/40 hover:text-white/70"
             }`}
           >
-            <Key className="w-3 h-3" style={activeTab === "spotify" ? { color: "var(--accent-color)" } : {}} />
-            Spotify API
+            <Key className="w-3 h-3 shrink-0" style={activeTab === "spotify" ? { color: "var(--accent-color)" } : {}} />
+            <span>Spotify API</span>
           </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1 lyrics-scroll-container">
-          {/* TAB 1: WYGLĄD (KIERUNKI, ANIMACJE, KOLORY, MOTYWY) */}
+        <div className="flex-1 overflow-y-auto space-y-4 pr-1 sm:pr-1.5 lyrics-scroll-container">
+          {/* TAB 1: WYGLĄD */}
           {activeTab === "appearance" && (
             <div className="space-y-4 text-xs">
+              {/* 1. GOTOWE PRESETY MOTYWÓW NA SAMEJ GÓRZE */}
+              <div className="space-y-2 bg-black/25 p-2.5 rounded-xl border border-white/5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Wand2 className="w-3.5 h-3.5 text-amber-400" />
+                    <label className="text-[11px] font-bold text-white tracking-wide">
+                      Gotowe motywy (Presety)
+                    </label>
+                  </div>
+                  <span className="text-[10px] text-white/40">1-kliknięcie</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                  {THEME_PRESETS.map((preset) => {
+                    const isSelected =
+                      customization.accentColor.toLowerCase() === preset.settings.accentColor?.toLowerCase() &&
+                      customization.bgTheme === preset.settings.bgTheme;
+
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => onUpdateCustomization(preset.settings)}
+                        className={`relative p-2 rounded-xl text-left border transition-all flex flex-col justify-between gap-1 group ${
+                          isSelected
+                            ? "border-[var(--accent-color)] bg-white/15 ring-1 ring-[var(--accent-color)]/60 shadow-md"
+                            : preset.isAuthorFav
+                            ? "border-amber-500/40 bg-amber-500/10 hover:border-amber-400 hover:bg-amber-500/15"
+                            : "border-white/10 bg-black/30 hover:border-white/20 hover:bg-white/5"
+                        }`}
+                      >
+                        {/* Top row: color dot, title, badge */}
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                              style={{ backgroundColor: preset.accentColor }}
+                            />
+                            <span className="text-[10px] sm:text-[10.5px] font-bold text-white truncate">
+                              {preset.name}
+                            </span>
+                          </div>
+                          {preset.isAuthorFav && (
+                            <span className="text-[8px] font-bold px-1 py-0.2 rounded bg-amber-500/30 text-amber-300 border border-amber-400/40 flex items-center gap-0.5 shrink-0 ml-1">
+                              <Star className="w-2 h-2 fill-amber-300 text-amber-300" />
+                              Autor
+                            </span>
+                          )}
+                          {isSelected && !preset.isAuthorFav && (
+                            <Check className="w-3 h-3 text-white/90 shrink-0 ml-1" />
+                          )}
+                        </div>
+
+                        {/* Subtitle description */}
+                        <p className="text-[9px] text-white/50 leading-tight line-clamp-1">
+                          {preset.desc}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Kolor Wiodący (Akcent) */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[11px] font-semibold text-white/80">
+                    Kolor wiodący (Akcent)
+                  </label>
+                  <span className="text-[10px] font-mono text-white/40 uppercase">
+                    {customization.accentColor}
+                  </span>
+                </div>
+
+                {/* Swatches */}
+                <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                  {COLOR_PRESETS.map((preset) => {
+                    const isFav = Boolean((preset as any).isAuthorFav);
+                    const isSelected =
+                      customization.accentColor.toLowerCase() === preset.color.toLowerCase();
+
+                    return (
+                      <div key={preset.color} className="relative group/color flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => onUpdateCustomization({ accentColor: preset.color })}
+                          className={`w-6 h-6 rounded-full transition-all border flex items-center justify-center relative ${
+                            isFav
+                              ? "border-amber-400/90 ring-1 ring-amber-400/40"
+                              : "border-white/20"
+                          } ${
+                            isSelected
+                              ? "scale-125 ring-2 ring-white/70 shadow-lg"
+                              : "hover:scale-110 opacity-80 hover:opacity-100"
+                          }`}
+                          style={{ backgroundColor: preset.color }}
+                          title={preset.name}
+                        >
+                          {isSelected && (
+                            <Check className="w-3 h-3 text-white stroke-[3] drop-shadow" />
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                  {/* Custom color picker */}
+                  <label
+                    className="w-6 h-6 rounded-full border border-white/30 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-110 transition bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500"
+                    title="Wybierz własny kolor z palety"
+                  >
+                    <input
+                      type="color"
+                      value={customization.accentColor}
+                      onChange={(e) => onUpdateCustomization({ accentColor: e.target.value })}
+                      className="opacity-0 w-0 h-0 cursor-pointer"
+                    />
+                  </label>
+                </div>
+
+                {/* Subtitle / badge info for active color */}
+                {customization.accentColor.toLowerCase() === "#6f4a16" ? (
+                  <div className="flex items-center gap-1.5 text-[10px] text-amber-300/90 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg">
+                    <Star className="w-3 h-3 text-amber-400 fill-amber-400 shrink-0" />
+                    <span>Ulubiony kolor autora (#6F4A16) — ciepły odcień mokka</span>
+                  </div>
+                ) : (
+                  <div className="text-[10px] text-white/50 px-0.5">
+                    Aktywny kolor: <span className="text-white font-mono">{customization.accentColor}</span>
+                  </div>
+                )}
+              </div>
+
               {/* Kierunek Zwijania */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
                   Kierunek zwijania (Kotwica)
                 </label>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   {(
                     [
                       { id: "top-right", label: "Prawy górny ↗" },
@@ -185,7 +450,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <button
                       key={dir.id}
                       onClick={() => onUpdateCustomization({ collapseDirection: dir.id })}
-                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition ${
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition truncate ${
                         customization.collapseDirection === dir.id
                           ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
                           : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
@@ -216,7 +481,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <button
                       key={anim.id}
                       onClick={() => onUpdateCustomization({ animationType: anim.id })}
-                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition ${
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition truncate ${
                         customization.animationType === anim.id
                           ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
                           : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
@@ -250,85 +515,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 />
               </div>
 
-              {/* Kolor Wiodący (Accent) */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="text-[11px] font-semibold text-white/80">
-                    Kolor wiodący (Akcent)
-                  </label>
-                  <span className="text-[10px] font-mono text-white/40 uppercase">
-                    {customization.accentColor}
-                  </span>
-                </div>
-                {/* Presets */}
-                <div className="flex items-center gap-2 flex-wrap pt-1">
-                  {COLOR_PRESETS.map((preset) => {
-                    const isFav = Boolean((preset as any).isAuthorFav);
-                    const isSelected =
-                      customization.accentColor.toLowerCase() === preset.color.toLowerCase();
-
-                    return (
-                      <div key={preset.color} className="relative group/color flex items-center">
-                        <button
-                          type="button"
-                          onClick={() => onUpdateCustomization({ accentColor: preset.color })}
-                          className={`w-6 h-6 rounded-full transition-all border flex items-center justify-center relative ${
-                            isFav
-                              ? "border-amber-400/90 ring-1 ring-amber-400/30"
-                              : "border-white/20"
-                          } ${
-                            isSelected
-                              ? "scale-125 ring-2 ring-white/70"
-                              : "hover:scale-110 opacity-80 hover:opacity-100"
-                          }`}
-                          style={{ backgroundColor: preset.color }}
-                          title={(preset as any).tooltip || preset.name}
-                        >
-                          {isSelected && (
-                            <Check className="w-3 h-3 text-white stroke-[3] drop-shadow" />
-                          )}
-                        </button>
-
-                        {/* Tooltip for Author's Favorite */}
-                        {isFav && (
-                          <div className="absolute bottom-full mb-2 left-0 hidden group-hover/color:flex flex-col items-start z-50 pointer-events-none">
-                            <div className="bg-zinc-950 text-amber-200 border border-amber-500/50 text-[10px] font-medium px-2 py-0.5 rounded-md shadow-2xl whitespace-nowrap">
-                              Author's Favorite (Theme Choice)
-                            </div>
-                            <div className="w-1.5 h-1.5 bg-zinc-950 border-r border-b border-amber-500/50 rotate-45 ml-2.5 -mt-1" />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {/* Custom color picker */}
-                  <label
-                    className="w-6 h-6 rounded-full border border-white/30 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-110 transition bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500"
-                    title="Wybierz własny kolor"
-                  >
-                    <input
-                      type="color"
-                      value={customization.accentColor}
-                      onChange={(e) => onUpdateCustomization({ accentColor: e.target.value })}
-                      className="opacity-0 w-0 h-0 cursor-pointer"
-                    />
-                  </label>
-                </div>
-              </div>
-
               {/* Styl Tła & Szkła */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-semibold text-white/80 block">
                   Styl tła
                 </label>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                   {(
                     [
-                      { id: "glass", label: "Szkło Akrylowe" },
+                      { id: "glass", label: "Szkło Akryl" },
                       { id: "oled", label: "Czysty OLED" },
                       { id: "frosted", label: "Mroźne Szkło" },
-                      { id: "gradient", label: "Neon Gradient" },
-                      { id: "aurora", label: "Dynamiczna Zorza" },
+                      { id: "gradient", label: "Gradient" },
+                      { id: "aurora", label: "Zorza Polarna" },
                       { id: "particles", label: "Gwiezdny Pył" },
                       { id: "mesh", label: "Mesh Gradient" },
                       { id: "gif", label: "Animowany GIF" },
@@ -337,7 +536,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <button
                       key={theme.id}
                       onClick={() => onUpdateCustomization({ bgTheme: theme.id })}
-                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-left transition ${
+                      className={`py-1.5 px-2 rounded-lg text-[11px] font-medium border text-center transition truncate ${
                         customization.bgTheme === theme.id
                           ? "border-[var(--accent-color)] bg-white/10 text-white font-bold"
                           : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
@@ -349,7 +548,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Wybór konkretnego GIF-a (nowy select po zaznaczeniu opcji tła GIF) */}
+              {/* Wybór konkretnego GIF-a (gdy zaznaczono GIF) */}
               {customization.bgTheme === "gif" && (
                 <div className="space-y-2 bg-black/30 p-2.5 rounded-xl border border-[var(--accent-color)]/30 animate-fadeIn">
                   <div className="flex items-center justify-between">
@@ -487,7 +686,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
                     }`}
                   >
-                    Na najechanie myszką
+                    Na najechanie
                   </button>
 
                   <button
@@ -498,12 +697,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         : "border-white/5 bg-black/20 text-white/50 hover:text-white hover:bg-white/5"
                     }`}
                   >
-                    Tylko po kliknięciu
+                    Tylko na klik
                   </button>
                 </div>
                 <span className="text-[10px] text-white/40 block pt-1">
                   {customization.expandTrigger === "click"
-                    ? "Widget rozwinie się dopiero po kliknięciu. Nie rozwinie się przypadkowo przy przejechaniu myszką."
+                    ? "Widget rozwinie się po kliknięciu. Nie rozwinie się przypadkowo przy najechaniu myszką."
                     : "Widget rozwija się automatycznie, gdy wjedziesz kursorem w jego obszar."}
                 </span>
               </div>
@@ -666,7 +865,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {/* Opóźnienie autozwijania */}
               <div className="space-y-1 bg-black/20 p-2.5 rounded-xl border border-white/5">
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-white/70">Opóźnienie zwijania po zjechaniu kursoru:</span>
+                  <span className="text-white/70">Opóźnienie zwijania po zjechaniu kursora:</span>
                   <span className="font-mono text-white/90 font-bold">
                     {customization.collapseDelayMs} ms
                   </span>
