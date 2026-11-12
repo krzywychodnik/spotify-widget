@@ -4,42 +4,71 @@ const LRCLIB_BASE = "https://lrclib.net/api";
 
 const lyricsCache = new Map<string, LyricLine[]>();
 
-// Parse LRC timestamp like [01:23.45] or [00:12.345] into milliseconds
+// Enhanced LRC parser supporting multiple timestamps, offsets, and varied millisecond formats
 export function parseLrc(lrcText: string): LyricLine[] {
   const lines = lrcText.split("\n");
   const result: LyricLine[] = [];
-  const timeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/;
+
+  // Check for [offset: +/- ms]
+  let offsetMs = 0;
+  const offsetMatch = lrcText.match(/\[offset:\s*([+-]?\d+)\]/i);
+  if (offsetMatch) {
+    offsetMs = parseInt(offsetMatch[1], 10) || 0;
+  }
+
+  // Regex matching timestamp tags like [01:23.45], [01:23.456], [01:23], [01:23:45]
+  const tagRegex = /\[(\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?\]/g;
 
   for (const rawLine of lines) {
     const trimmed = rawLine.trim();
     if (!trimmed) continue;
 
-    const match = trimmed.match(timeRegex);
-    if (match) {
-      const minutes = parseInt(match[1], 10);
-      const seconds = parseInt(match[2], 10);
-      let msPart = match[3];
-      if (msPart.length === 2) {
-        msPart = msPart + "0"; // e.g. .45 -> 450ms
-      }
-      const milliseconds = parseInt(msPart, 10);
-      const timeMs = minutes * 60 * 1000 + seconds * 1000 + milliseconds;
-      const text = match[4].trim();
+    // Ignore metadata tags like [ar:...], [ti:...], [al:...], [length:...]
+    if (/^\[(ti|ar|al|au|by|length|offset|re|ve):/i.test(trimmed)) {
+      continue;
+    }
 
-      result.push({
-        timeMs,
-        timeStr: `${match[1]}:${match[2]}`,
-        text: text || "♪",
-      });
+    const matches = Array.from(trimmed.matchAll(tagRegex));
+    if (matches.length > 0) {
+      // Clean text by stripping all timestamp brackets
+      const cleanText = trimmed.replace(tagRegex, "").trim();
+
+      for (const match of matches) {
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        let ms = 0;
+        if (match[3]) {
+          if (match[3].length === 1) {
+            ms = parseInt(match[3], 10) * 100;
+          } else if (match[3].length === 2) {
+            ms = parseInt(match[3], 10) * 10;
+          } else {
+            ms = parseInt(match[3].slice(0, 3), 10);
+          }
+        }
+
+        const calculatedTimeMs = Math.max(
+          0,
+          minutes * 60 * 1000 + seconds * 1000 + ms + offsetMs
+        );
+
+        const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+        result.push({
+          timeMs: calculatedTimeMs,
+          timeStr: `${pad(minutes)}:${pad(seconds)}`,
+          text: cleanText || "♪",
+        });
+      }
     }
   }
 
+  // Sort chronologically
   return result.sort((a, b) => a.timeMs - b.timeMs);
 }
 
 // Fallback parse plain text without timestamps
 export function parsePlainLyrics(plain: string, durationMs: number): LyricLine[] {
-  const lines = plain.split("\n").map(l => l.trim()).filter(Boolean);
+  const lines = plain.split("\n").map((l) => l.trim()).filter(Boolean);
   if (lines.length === 0) return [];
 
   const interval = durationMs / lines.length;
@@ -78,8 +107,10 @@ export async function fetchLyrics(
       const data: LRCLibResponse = await getRes.json();
       if (data.syncedLyrics) {
         const parsed = parseLrc(data.syncedLyrics);
-        lyricsCache.set(cacheKey, parsed);
-        return parsed;
+        if (parsed.length > 0) {
+          lyricsCache.set(cacheKey, parsed);
+          return parsed;
+        }
       }
       if (data.plainLyrics && durationMs) {
         const parsed = parsePlainLyrics(data.plainLyrics, durationMs);
@@ -95,12 +126,13 @@ export async function fetchLyrics(
     if (searchRes.ok) {
       const results: LRCLibResponse[] = await searchRes.json();
       if (Array.isArray(results) && results.length > 0) {
-        // Find best match with synced lyrics
-        const best = results.find(r => !!r.syncedLyrics) || results[0];
+        const best = results.find((r) => !!r.syncedLyrics) || results[0];
         if (best.syncedLyrics) {
           const parsed = parseLrc(best.syncedLyrics);
-          lyricsCache.set(cacheKey, parsed);
-          return parsed;
+          if (parsed.length > 0) {
+            lyricsCache.set(cacheKey, parsed);
+            return parsed;
+          }
         }
         if (best.plainLyrics && durationMs) {
           const parsed = parsePlainLyrics(best.plainLyrics, durationMs);

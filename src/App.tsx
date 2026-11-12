@@ -3,12 +3,19 @@ import { useSpotifyAuth } from "./hooks/useSpotifyAuth";
 import { useSpotifyPlayer } from "./hooks/useSpotifyPlayer";
 import { useLyrics } from "./hooks/useLyrics";
 import { useWindowControl } from "./hooks/useWindowControl";
+import { useCustomization } from "./hooks/useCustomization";
 import { CollapsedWidget } from "./components/CollapsedWidget";
 import { ExpandedPlayer } from "./components/ExpandedPlayer";
 import { SettingsModal } from "./components/SettingsModal";
 
 export const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const {
+    customization,
+    updateCustomization,
+    resetToDefaults,
+  } = useCustomization();
 
   const {
     isAuthenticated,
@@ -35,18 +42,24 @@ export const App: React.FC = () => {
     changeVolume,
     toggleShuffle,
     toggleRepeat,
+    playPlaylist,
   } = useSpotifyPlayer(isAuthenticated);
 
   const { lyrics, activeLineIndex, isLoading: isLyricsLoading, scrollContainerRef } =
     useLyrics(currentTrack, smoothProgressMs);
 
+  // When isSettingsOpen is true, collapse is strictly prevented!
   const {
     isExpanded,
+    isCollapsing,
     isPinned,
     togglePin,
     handleMouseEnter,
     handleMouseLeave,
-  } = useWindowControl();
+    expand,
+    collapse,
+    closeApp,
+  } = useWindowControl(customization, isSettingsOpen);
 
   // Listen for Tauri OAuth callback events from the Rust backend
   useEffect(() => {
@@ -87,6 +100,12 @@ export const App: React.FC = () => {
 
   const progressPercent = durationMs > 0 ? (smoothProgressMs / durationMs) * 100 : 0;
 
+  const animType = customization.animationType || "spring";
+  const animDirectionClass = `anim-dir-${customization.collapseDirection || "top-right"}`;
+  const animClass = isCollapsing
+    ? `anim-collapse-${animType} ${animDirectionClass}`
+    : `anim-expand-${animType} ${animDirectionClass}`;
+
   return (
     <main
       onMouseEnter={handleMouseEnter}
@@ -94,7 +113,7 @@ export const App: React.FC = () => {
       className="relative w-full h-full flex items-center justify-center p-1 overflow-hidden"
     >
       {isExpanded ? (
-        <div className="w-full h-full animate-fadeIn transition-all duration-300">
+        <div className={`w-full h-full ${animClass}`}>
           <ExpandedPlayer
             currentTrack={currentTrack}
             isPlaying={isPlaying}
@@ -113,23 +132,29 @@ export const App: React.FC = () => {
             onToggleShuffle={toggleShuffle}
             onToggleRepeat={toggleRepeat}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onCloseApp={closeApp}
+            onCollapse={collapse}
             lyrics={lyrics}
             activeLineIndex={activeLineIndex}
             isLyricsLoading={isLyricsLoading}
             scrollContainerRef={scrollContainerRef}
             isAuthenticated={isAuthenticated}
             onLoginClick={() => setIsSettingsOpen(true)}
+            customization={customization}
+            onPlayPlaylist={playPlaylist}
           />
         </div>
       ) : (
-        <div className="w-full h-full transition-all duration-300">
+        <div className="w-full h-full animate-collapsed-entry flex items-center justify-center">
           <CollapsedWidget
             currentTrack={currentTrack}
             isPlaying={isPlaying}
             onTogglePlay={togglePlayPause}
             onNext={nextTrack}
             onPrev={prevTrack}
+            onExpand={expand}
             progressPercent={progressPercent}
+            customization={customization}
           />
         </div>
       )}
@@ -148,8 +173,12 @@ export const App: React.FC = () => {
           setIsSettingsOpen(false);
         }}
         authError={authError}
+        customization={customization}
+        onUpdateCustomization={updateCustomization}
+        onResetCustomization={resetToDefaults}
       />
     </main>
   );
 };
+
 export default App;

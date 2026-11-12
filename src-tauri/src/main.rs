@@ -6,7 +6,7 @@ use std::net::TcpListener;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread;
-use tauri::{Emitter, Manager, Size, LogicalSize};
+use tauri::{Emitter, Manager, Size, LogicalSize, Position, PhysicalPosition};
 
 #[derive(Clone, serde::Serialize)]
 struct OAuthCallbackPayload {
@@ -15,10 +15,50 @@ struct OAuthCallbackPayload {
 }
 
 #[tauri::command]
-fn resize_widget(window: tauri::Window, width: f64, height: f64) -> Result<(), String> {
-    window
-        .set_size(Size::Logical(LogicalSize { width, height }))
-        .map_err(|e| e.to_string())
+fn resize_widget(
+    window: tauri::Window,
+    width: f64,
+    height: f64,
+    delta_x: Option<f64>,
+    delta_y: Option<f64>,
+) -> Result<(), String> {
+    let dx = delta_x.unwrap_or(0.0);
+    let dy = delta_y.unwrap_or(0.0);
+
+    if dx != 0.0 || dy != 0.0 {
+        let scale = window.scale_factor().unwrap_or(1.0);
+        let cur_pos = window.outer_position().map_err(|e| e.to_string())?;
+        let delta_px_x = (dx * scale).round() as i32;
+        let delta_px_y = (dy * scale).round() as i32;
+        let new_pos = PhysicalPosition {
+            x: cur_pos.x + delta_px_x,
+            y: cur_pos.y + delta_px_y,
+        };
+
+        // If shrinking (collapse), lock resizing and resize FIRST to avoid screen edge clamping, then position.
+        // If expanding, move position FIRST to make room on screen, then resize and unlock resizing.
+        let is_collapsing = width < 200.0;
+        if is_collapsing {
+            let _ = window.set_resizable(false);
+            let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+            let _ = window.set_position(Position::Physical(new_pos));
+            return Ok(());
+        } else {
+            let _ = window.set_position(Position::Physical(new_pos));
+            let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+            let _ = window.set_resizable(true);
+            return Ok(());
+        }
+    }
+    let is_collapsing = width < 200.0;
+    let _ = window.set_resizable(!is_collapsing);
+    let _ = window.set_size(Size::Logical(LogicalSize { width, height }));
+    Ok(())
+}
+
+#[tauri::command]
+fn close_widget(app_handle: tauri::AppHandle) {
+    app_handle.exit(0);
 }
 
 #[tauri::command]
@@ -151,7 +191,7 @@ fn start_local_oauth_listener(app_handle: tauri::AppHandle) {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![resize_widget, set_always_on_top])
+        .invoke_handler(tauri::generate_handler![resize_widget, set_always_on_top, close_widget])
         .setup(|app| {
             let app_handle = app.handle().clone();
 
