@@ -6,13 +6,11 @@ export function useLyrics(currentTrack: SpotifyTrack | null, progressMs: number)
   const [lyrics, setLyrics] = useState<LyricLine[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const prevLineIndexRef = useRef<number>(-1);
 
   // Load lyrics when track changes
   useEffect(() => {
     if (!currentTrack) {
       setLyrics([]);
-      prevLineIndexRef.current = -1;
       return;
     }
 
@@ -65,37 +63,6 @@ export function useLyrics(currentTrack: SpotifyTrack | null, progressMs: number)
 
     return foundIndex;
   }, [lyrics, progressMs]);
-
-  // Auto-scroll active line to center
-  useEffect(() => {
-    if (activeLineIndex < 0 || !scrollContainerRef.current) return;
-
-    const container = scrollContainerRef.current;
-    const activeEl = container.querySelector(
-      `[data-lyric-index="${activeLineIndex}"]`
-    ) as HTMLElement;
-
-    if (activeEl) {
-      const containerRect = container.getBoundingClientRect();
-      const activeRect = activeEl.getBoundingClientRect();
-      const relativeTop =
-        activeRect.top - containerRect.top + container.scrollTop;
-      const targetScroll =
-        relativeTop - container.clientHeight / 2 + activeRect.height / 2;
-
-      // If user jumped (seeked) to a far line, use instant scroll
-      // Otherwise, use smooth scroll for consecutive line progression
-      const prevIdx = prevLineIndexRef.current;
-      const isConsecutive = prevIdx >= 0 && Math.abs(activeLineIndex - prevIdx) === 1;
-
-      container.scrollTo({
-        top: Math.max(0, targetScroll),
-        behavior: isConsecutive ? "smooth" : "auto",
-      });
-
-      prevLineIndexRef.current = activeLineIndex;
-    }
-  }, [activeLineIndex]);
 
   return {
     lyrics,

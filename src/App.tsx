@@ -61,6 +61,14 @@ export const App: React.FC = () => {
     closeApp,
   } = useWindowControl(customization, isSettingsOpen);
 
+  // Auto-expand on initial launch if user hasn't connected their Spotify account yet
+  useEffect(() => {
+    if (!isAuthenticated) {
+      expand();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Listen for Tauri OAuth callback events from the Rust backend
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -139,7 +147,8 @@ export const App: React.FC = () => {
             isLyricsLoading={isLyricsLoading}
             scrollContainerRef={scrollContainerRef}
             isAuthenticated={isAuthenticated}
-            onLoginClick={() => setIsSettingsOpen(true)}
+            onLoginClick={login}
+            authError={authError}
             customization={customization}
             onPlayPlaylist={playPlaylist}
           />

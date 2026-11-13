@@ -18,6 +18,8 @@ import {
   X,
   ChevronDown,
   ListMusic,
+  ExternalLink,
+  AlertCircle,
 } from "lucide-react";
 import { SpotifyTrack, LyricLine, AppCustomization, PRESET_GIFS } from "../types";
 import { LyricsView } from "./LyricsView";
@@ -51,6 +53,7 @@ interface ExpandedPlayerProps {
   scrollContainerRef: React.RefObject<any>;
   isAuthenticated: boolean;
   onLoginClick: () => void;
+  authError?: string | null;
   customization?: AppCustomization;
   onPlayPlaylist?: (uri: string) => void;
 }
@@ -89,6 +92,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
   scrollContainerRef,
   isAuthenticated,
   onLoginClick,
+  authError,
   customization,
   onPlayPlaylist,
 }) => {
@@ -319,18 +323,33 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             <Music2 className="w-7 h-7" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-sm font-bold text-white">{t.settings.spotify.connected.replace("Connected to", "Connect to")}</h3>
+            <h3 className="text-sm font-bold text-white">{t.player.connectSpotify}</h3>
             <p className="text-xs text-white/50 max-w-[240px]">
-              {t.player.playSomething}
+              {t.player.connectPrompt}
             </p>
           </div>
-          <button
-            onClick={onLoginClick}
-            style={{ backgroundColor: "var(--accent-color)" }}
-            className="px-4 py-2 text-black text-xs font-bold rounded-xl shadow-lg transition active:scale-95"
-          >
-            {t.settings.spotify.loginWithSpotify}
-          </button>
+          {authError && (
+            <div className="flex items-start gap-1.5 p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] max-w-[260px] text-left">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+              <span>{authError}</span>
+            </div>
+          )}
+          <div className="flex flex-col items-center gap-2">
+            <button
+              onClick={onLoginClick}
+              style={{ backgroundColor: "var(--accent-color)" }}
+              className="px-4 py-2 text-black text-xs font-bold rounded-xl shadow-lg transition active:scale-95 flex items-center gap-1.5"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              {t.settings.spotify.loginWithSpotify}
+            </button>
+            <button
+              onClick={onOpenSettings}
+              className="text-[11px] text-white/40 hover:text-white/80 underline transition"
+            >
+              {t.player.configureManually}
+            </button>
+          </div>
         </div>
       ) : !currentTrack ? (
         /* Idle / Nothing Playing state */
@@ -347,7 +366,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
         </div>
       ) : activeTab === "lyrics" ? (
         /* Lyrics View */
-        <div className="flex-1 flex flex-col overflow-hidden z-10">
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden z-10">
           {/* Mini Track Bar in Lyrics View */}
           <div className="px-4 py-2 flex items-center justify-between border-b border-white/5 bg-black/30 backdrop-blur-md shrink-0">
             <div className="flex items-center gap-2 overflow-hidden">
@@ -380,7 +399,7 @@ export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({
             </button>
           </div>
 
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden">
             <LyricsView
               lyrics={lyrics}
               activeLineIndex={activeLineIndex}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { LyricLine, AppCustomization } from "../types";
 import { Music, Loader2 } from "lucide-react";
 import { useTranslation } from "../i18n";
@@ -25,6 +25,52 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
   const lyricStyle = customization?.activeLyricStyle || "spotify-glow";
   const glow = customization?.lyricsGlow !== false;
   const textAlign = customization?.lyricsAlign || "left";
+  const prevLineIndexRef = useRef<number>(-1);
+  const prevLyricsRef = useRef<LyricLine[]>(lyrics);
+
+  // Auto-scroll active line to center on mount, track change, and line progression
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || isLoading || lyrics.length === 0) return;
+
+    const lyricsChanged = prevLyricsRef.current !== lyrics;
+    if (lyricsChanged) {
+      prevLyricsRef.current = lyrics;
+      prevLineIndexRef.current = -1;
+    }
+
+    if (activeLineIndex < 0) {
+      if (lyricsChanged) {
+        container.scrollTo({ top: 0, behavior: "auto" });
+      }
+      prevLineIndexRef.current = -1;
+      return;
+    }
+
+    const activeEl = container.querySelector(
+      `[data-lyric-index="${activeLineIndex}"]`
+    ) as HTMLElement | null;
+
+    if (!activeEl) return;
+
+    const containerRect = container.getBoundingClientRect();
+    const activeRect = activeEl.getBoundingClientRect();
+    const relativeTop =
+      activeRect.top - containerRect.top + container.scrollTop;
+    const targetScroll =
+      relativeTop - container.clientHeight / 2 + activeRect.height / 2;
+
+    const prevIdx = prevLineIndexRef.current;
+    const isConsecutive =
+      !lyricsChanged && prevIdx >= 0 && Math.abs(activeLineIndex - prevIdx) === 1;
+
+    container.scrollTo({
+      top: Math.max(0, targetScroll),
+      behavior: isConsecutive ? "smooth" : "auto",
+    });
+
+    prevLineIndexRef.current = activeLineIndex;
+  }, [activeLineIndex, lyrics, isLoading, scrollContainerRef]);
 
   const getFontSizeClasses = (isActive: boolean) => {
     switch (fontSize) {
@@ -92,6 +138,7 @@ export const LyricsView: React.FC<LyricsViewProps> = ({
         return (
           <p
             key={`${line.timeMs}-${index}`}
+            data-lyric-index={index}
             onClick={() => onSeek(line.timeMs)}
             style={activeInlineStyle}
             className={`cursor-pointer transition-all duration-300 leading-relaxed ${getFontSizeClasses(

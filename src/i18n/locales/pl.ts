@@ -38,6 +38,9 @@ export const pl: TranslationDictionary = {
     unmute: "Włącz dźwięk",
     openPlaylists: "Kliknij, aby otworzyć playlisty",
     yourPlaylists: "Twoje playlisty",
+    connectSpotify: "Połącz ze Spotify",
+    connectPrompt: "Zaloguj się na swoje konto Spotify, aby sterować muzyką i oglądać teksty.",
+    configureManually: "Skonfiguruj ręcznie w ustawieniach",
   },
   collapsed: {
     play: "Odtwórz",

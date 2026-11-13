@@ -38,6 +38,9 @@ export interface TranslationDictionary {
     unmute: string;
     openPlaylists: string;
     yourPlaylists: string;
+    connectSpotify: string;
+    connectPrompt: string;
+    configureManually: string;
   };
   collapsed: {
     play: string;
